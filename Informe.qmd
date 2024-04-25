@@ -1,26 +1,263 @@
 ---
-title: "Informe"
-format: pdf
-editor: visual
+title: "Metropolis-Hasting"
+format: 
+  pdf:
+    fig-pos: "H"
+lang: es
+echo: FALSE
+message: FALSE
+warning: FALSE
+geometry:
+  - top= 25mm
+  - left= 20mm
+  - right = 20mm
+  - bottom = 25mm
+  - heightrounded
+header-includes:
+  - \usepackage{ragged2e}
+  - \usepackage{hyperref}
+
 ---
 
-## Quarto
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
-
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
-```{r}
-1 + 1
+```{r Carga de librerias}
+library(tidyverse)
+library(mvtnorm)
 ```
 
-You can add options to executable code like this
+```{r Configuraciones predeterminadas}
+knitr::opts_chunk$set(fig.align = "center", out.width = "70%")
 
-```{r}
-#| echo: false
-2 * 2
+set.seed("2126519")
+
+theme_set(theme_bw())
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+
+# Metropolis-Hasting en una dimensión
+  
+A continuación se presenta...
+
+
+:::callout-note
+## Algoritmo M-H univariado
+
+```{r Algoritmo M-H univariado}
+sample_mh <- function(n, 
+                      d_objetivo, 
+                      r_propuesta = NULL,
+                      d_propuesta = NULL,
+                      p_inicial = NULL){
+
+  if (is.null(r_propuesta) | is.null(d_propuesta)) {
+    r_propuesta <- function(media) rnorm(n = 1, media, sd = 1)
+    d_propuesta <- function(x, media) dnorm(x = x,media, sd = 1)
+  }
+  
+  stopifnot(n > 0)
+  muestras <- numeric(n)
+  
+  if (is.null(p_inicial)) {
+    for(i in 1:1000){
+      p_inicial <- runif(1,-100,100)
+      if (d_objetivo(p_inicial) != 0) {
+        break
+      }
+    }
+    if(i == 1000) stop("Se recomienda introducir un valor para ´p_inicial´")
+  }
+  
+  muestras[1] <- p_inicial
+
+  for(i in 2:n) {
+    
+    p_actual <- muestras[i-1]
+    p_propuesta <- r_propuesta(p_actual)
+
+    q_actual <- d_propuesta(p_actual, p_propuesta)
+    q_nuevo <- d_propuesta(p_propuesta, p_actual)
+    
+    f_actual <- d_objetivo(p_actual)
+    f_nuevo <- d_objetivo(p_propuesta)
+
+    alfa <- min(1, (f_nuevo/f_actual)*(q_actual/q_nuevo))
+
+    muestras[i] <- sample(c(p_propuesta, p_actual),
+    size = 1, prob = c(alfa, 1-alfa))
+  }
+  return(data.frame(iteracion = 1:n, x = muestras))
+}
+
+# d_obj <- function(x){
+#   # dnorm(x = x,mean = 90,sd = 8)
+#   return(dbeta(x = x,2,2))
+# }
+# d_obj(-50)
+# muestra <- sample_mh(100000, d_objetivo = d_obj)
+# 
+# muestra |> 
+#   ggplot()+
+#   aes(x = x)+
+#   geom_histogram()
+```
+:::
+
+
+# Distribución de Kumaraswamy
+
+
+
+
+```{r}
+grilla <- seq(0, 1, length.out = 502)[c(-1,-502)]
+d_kuma <- function(x, a = 2, b = 2){
+  
+  if(a<0 | b<0) stop("Poneme a y b positivos no te cuesta nada")
+  
+  salida <- a*b*x^(a-1)*(1-x^a)^(b-1)
+  
+  salida[which(x <= 0 | x >= 1)] <- 0
+  
+  salida
+}
+
+
+
+tibble(
+  x = rep(grilla,times = 5),
+  parametros = rep(c("a = 0.5, b = 0.5",
+                     "a = 1, b = 2",
+                     "a = 3, b = 4",
+                     "a = 6, b = 2",
+                     "a = 5, b = 1"), each = 500),
+  valores = c(
+    d_kuma(grilla, 0.5, 0.5),
+    d_kuma(grilla, 1, 2),
+    d_kuma(grilla, 3, 4),
+    d_kuma(grilla, 6, 2),
+    d_kuma(grilla, 5,1)
+  )
+) |> 
+  ggplot()+
+  aes(x = x, y = valores,color = parametros)+
+  geom_line(linewidth = 1.2)
+
+# tibble(
+#   x = rep(grilla,times = 5),
+#   parametros = rep(c("a = 0.5, b = 0.5",
+#                      "a = 1, b = 2",
+#                      "a = 3, b = 4",
+#                      "a = 6, b = 2",
+#                      "a = 5, b = 1"), each = 500),
+#   valores = c(
+#     dbeta(grilla, 0.5, 0.5),
+#     dbeta(grilla, 1, 2),
+#     dbeta(grilla, 3, 4),
+#     dbeta(grilla, 6, 2),
+#     dbeta(grilla, 5,1)
+#   )
+# ) |> 
+#   ggplot()+
+#   aes(x = x, y = valores,color = parametros)+
+#   geom_line(linewidth = 1.2)
+# 
+
+```
+
+
+Esta distribución puede ser utilizada en el ámbito de la estadística bayesiana a la hora de definir un prior para un parámetro con campo de variación en el intervalo (0, 1).
+
+Por lo general la distribución elegida para estas situaciones suele ser la beta ya que presenta ventajas como ser una distribución conjugada de la binomial, lo cual puede facilitar mucho algunos cálculos. El problema es que para calcular la densidad de esta es que depende de la función gamma, la cual es una integral, y en algunas situaciones se puede complicar su cálculo.
+
+La distribución de Kumaraswamy se comporta de manera muy similar a la beta, sin tener el problema de la dificultad del cálculo de la densidad. 
+
+
+```{r}
+get_beta_param <- function(media, kappa) {
+  alpha <- media*kappa
+  beta <- (1-media)*kappa
+  
+  return(list(alpha = alpha, beta = beta))
+}
+
+r_prop <- function(x) {
+  kappa <- 5
+  pars <- get_beta_param(x, kappa)
+  rbeta(1, shape1 = pars$alpha, shape2 = pars$beta)
+}
+d_prop <- function(x, mean) {
+  kappa <- 5
+  pars <- get_beta_param(mean, kappa)
+  dbeta(x, shape1 = pars$alpha, shape2 = pars$beta)
+}
+
+muestra <- sample_mh(n = 5000, d_objetivo = d_kuma, r_propuesta = r_prop, d_propuesta = d_prop)
+
+autocor <- tibble(
+  rezago = 0:20,
+  autocorrelacion = acf(muestra$x,lag.max = 20,plot = F)$acf
+)
+
+autocor |> 
+  ggplot(aes(x = rezago, y = autocorrelacion))+
+  geom_point(size = 2)+
+  geom_col(width = 0.07)+
+  geom_line(linewidth = 1, color = "blue")+
+  geom_hline(yintercept = 0, linewidth = 0.9)
+
+muestra |> 
+  ggplot()+
+  aes(x = iteracion, y = x) +
+  geom_line()
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+:::callout-note
+
+```{r}
+sample_mh <- function(n, d_objetivo, r_propuesta, d_propuesta, p_inicial = NULL) {
+
+  stopifnot(n > 0)
+  muestras <- matrix(0,nrow = n,ncol = length(p_inicial))
+  muestras[1, ] <- p_inicial
+  
+  for(i in 2:n) {
+    p_actual <- muestras[i-1,]
+    p_propuesta <- r_propuesta(p_actual)
+    
+    q_actual <- d_propuesta(p_actual, p_propuesta)
+    q_nuevo <- d_propuesta(p_propuesta, p_actual)
+    
+    f_actual <- d_objetivo(p_actual)
+    f_nuevo <- d_objetivo(p_propuesta)
+    
+    alfa <- min(1, (f_nuevo/f_actual)*(q_actual/q_nuevo))
+    
+    aceptar <- rbinom(1,1,alfa)
+    
+    if (aceptar) {
+      muestras[i,] <- p_propuesta
+    }else{
+      muestras[i,] <- p_actual
+    }
+  }
+  salida <- data.frame(iteracion = 1:n, x = muestras)
+  colnames(salida) <- c("iteracion", paste0("dim_",1:length(p_inicial)))
+  return(salida)
+}
+
+
+```
+:::
+
