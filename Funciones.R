@@ -7,10 +7,21 @@ plot_hist <- function(muestra, d_objetivo) {
 }
 
 plot_trace <- function(muestra) {
-  muestra |>
-    ggplot() +
-    geom_line(aes(x = iteracion, y = x)) +
-    labs(x = "Iteración", y = "Muestra")
+  
+  if (ncol(muestra) == 3) {
+    
+    muestra |>
+      pivot_longer(dim_1:dim_2, names_to = "dimension", values_to = "x") |> 
+      ggplot() +
+      geom_line(aes(x = iteracion, y = x, color = dimension)) +
+      labs(x = "Iteración", y = "Muestra")
+  } else {
+    
+    muestra |>
+      ggplot() +
+      geom_line(aes(x = iteracion, y = x)) +
+      labs(x = "Iteración", y = "Muestra")
+  }
 }
 
 plot_autocor <- function(muestra) {
@@ -40,8 +51,9 @@ plot_hotmap <- function(muestra, d_objetivo, puntos = T) {
     ggplot(aes(x = dim_1, y = dim_2)) +
     geom_density2d_filled() +
     stat_contour(aes(x = x, y = y, z = z), data = df_grilla, col = "white", alpha = 0.5) +
-    # labs(subtitle = "En blanco la distribución objetivo")
-    theme(legend.title = "Densidad")
+    labs(fill = "Densidad")
+    
+  
   if (puntos) {
     hotmap +
       geom_point(color = "black", 
@@ -54,4 +66,33 @@ plot_hotmap <- function(muestra, d_objetivo, puntos = T) {
 }
 
 
+W <- function(muestra) {
+  mean(apply(x, 2, var))
+}
 
+B <- function(x) {
+  media_cadenas <- apply(x, 2, mean)
+  var(media_cadenas) *nrow(x)
+}
+
+R_hat <- function(muestra) {
+  
+  S <- nrow(x)
+  M <- ncol(x)
+  W <- W(x)
+  B <- B(x)
+  
+  sqrt(((S-1)/S * W + 1/S*B) / W)
+}
+
+
+n_eff <- function(x) {
+  
+  s <- length(x)
+  
+  autocorrelaciones <- acf(x, plot = F, lag.max = Inf)$acf
+  limite <- which(autocorrelaciones < 0.025)[1] # Agregamos un limite para despreciar correlaciones muy chicas
+  
+  nrow(x) / (1+ 2 * sum(autocorrelaciones[2:limite]))
+  
+}

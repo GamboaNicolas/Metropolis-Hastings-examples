@@ -60,15 +60,15 @@ sample_mh <- function(n,
   contador <- 0
   muestras <- numeric(n)
   
-  if (is.null(p_inicial)) {
-    for(i in 1:1000){
-      p_inicial <- runif(1,-100,100)
-      if (d_objetivo(p_inicial) != 0) {
-        break
-      }
-    }
-    if(i == 1000) stop("Se recomienda introducir un valor para ´p_inicial´")
-  }
+  # if (is.null(p_inicial)) {
+  #   for(i in 1:1000){
+  #     p_inicial <- runif(1,-100,100)
+  #     if (d_objetivo(p_inicial) != 0) {
+  #       break
+  #     }
+  #   }
+  #   if(i == 1000) stop("Se recomienda introducir un valor para ´p_inicial´")
+  # }
   
   muestras[1] <- p_inicial
 
@@ -82,8 +82,14 @@ sample_mh <- function(n,
     
     f_actual <- d_objetivo(p_actual)
     f_nuevo <- d_objetivo(p_propuesta)
-
-    alfa <- min(1, (f_nuevo/f_actual)*(q_actual/q_nuevo))
+    
+    if (f_actual == 0 || q_nuevo == 0) {
+      alfa <- 1
+    } else {
+      
+      alfa <- min(1, (f_nuevo/f_actual)*(q_actual/q_nuevo))
+    }
+    
 
     muestras[i] <- sample(c(p_propuesta, p_actual),
     size = 1, prob = c(alfa, 1-alfa))
@@ -312,7 +318,7 @@ tablita
 :::callout-note
 
 ```{r}
-sample_mh <- function(n, d_objetivo, cov_propuesta = diag(2), p_inicial = numeric(2)) {
+sample_mh_mv <- function(n, d_objetivo, cov_propuesta = diag(2), p_inicial = numeric(2)) {
   
   if (length(p_inicial) != 2) {
     stop("El valor p_inicial debe ser bidimensional")
@@ -323,6 +329,8 @@ sample_mh <- function(n, d_objetivo, cov_propuesta = diag(2), p_inicial = numeri
   if (any((dim(cov_propuesta) != c(2,2)))) {
     stop("La matriz de covariancia debe ser de 2x2")
   }
+  
+  contador <- 0
   
   r_propuesta <-  function(media) rmvnorm(n = 1,mean = media,sigma = cov_propuesta)
   d_propuesta <- function(x, media) dmvnorm(x = x,mean = media,sigma = cov_propuesta)
@@ -340,7 +348,13 @@ sample_mh <- function(n, d_objetivo, cov_propuesta = diag(2), p_inicial = numeri
     f_actual <- d_objetivo(p_actual)
     f_nuevo <- d_objetivo(p_propuesta)
     
-    alfa <- min(1, (f_nuevo/f_actual)*(q_actual/q_nuevo))
+    
+    if (f_actual == 0 || q_nuevo == 0) {
+      alfa <- 1
+    } else {
+      
+      alfa <- min(1, (f_nuevo/f_actual)*(q_actual/q_nuevo))
+    }
     
     aceptar <- rbinom(1,1,alfa)
     
@@ -349,10 +363,18 @@ sample_mh <- function(n, d_objetivo, cov_propuesta = diag(2), p_inicial = numeri
     }else{
       muestras[i,] <- p_actual
     }
+    
+    if(!any(muestras[i,] != muestras[i-1,])) {
+      contador <- contador + 1
+    }
   }
   salida <- data.frame(iteracion = 1:n, x = muestras)
   colnames(salida) <- c("iteracion", paste0("dim_",1:length(p_inicial)))
-  return(salida)
+  
+  
+  return(list(muestra_mh = salida,
+       probabilidad_aceptacion = contador / n)) # REVISAR -----------
+
 }
 ```
 :::
@@ -365,7 +387,7 @@ d_obj <- function(x) dmvnorm(x,mean = mu,sigma = sigma)
 
 cov_prop <- diag(2)
 
-cadena <- sample_mh(n = 10000,d_objetivo = d_obj, cov_propuesta = cov_prop, p_inicial = c(0,0))
+cadena <- sample_mh_mv(n = 10000,d_objetivo = d_obj, cov_propuesta = cov_prop, p_inicial = c(0,0))
 
 ```
 
@@ -374,7 +396,49 @@ cadena <- sample_mh(n = 10000,d_objetivo = d_obj, cov_propuesta = cov_prop, p_in
 ```{r}
 #| fig-cap: "Titulos"
 #| fig-subcap: "lallala"
-plot_hotmap(muestra = cadena, d_objetivo = d_obj, puntos = F)
+plot_hotmap(muestra = cadena$muestra_mh, d_objetivo = d_obj, puntos = F)
+
+```
+
+```{r}
+plot_trace(muestra = cadena$muestra_mh)
+```
+
+Probabilidades
+```{r}
+# i
+mean(cadena$muestra_mh$dim_1 > 1 & cadena$muestra_mh$dim_2 < 0)
+
+# ii
+mean(cadena$muestra_mh$dim_1 > 1 & cadena$muestra_mh$dim_2 > 2)
+
+# iii
+mean(cadena$muestra_mh$dim_1 > 0.4 & cadena$muestra_mh$dim_2 > 0.75)
+
+```
+
+
+```{r}
+
+prob_1 <- pmvnorm(lower = c(1, -Inf), upper = c(Inf, 0), mean = mu, sigma = sigma)
+
+prob_2 <- pmvnorm(lower = c(1, 2), upper = c(Inf, Inf), mean = mu, sigma = sigma)
+
+prob_3 <- pmvnorm(lower = c(0.4, 0.75), upper = c(Inf, Inf), mean = mu, sigma = sigma)
+
+```
+
+```{r}
+d_obj_p <- function(x, a = 0.5, b = 5) exp(-((a-x[1])^2 + b *(x[2]-x[1]^2)^2))
+
+cov_prop_p <- diag(c(0.06, 0.07))
+
+cadena_p <- sample_mh_mv(n = 5000, d_objetivo = d_obj_p, cov_propuesta = cov_prop_p, p_inicial = c(0,0))
+
+cadena_p$probabilidad_aceptacion
+
+acf(cadena_p$muestra_mh[-1]) # Decorar
+
 
 ```
 
