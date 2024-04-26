@@ -303,15 +303,30 @@ tablita
 
 
 
+# Metropolis-Hasting en dos dimensiónes
+
+
 
 
 
 :::callout-note
 
 ```{r}
-sample_mh <- function(n, d_objetivo, r_propuesta, d_propuesta, p_inicial = NULL) {
-
-  stopifnot(n > 0)
+sample_mh <- function(n, d_objetivo, cov_propuesta = diag(2), p_inicial = numeric(2)) {
+  
+  if (length(p_inicial) != 2) {
+    stop("El valor p_inicial debe ser bidimensional")
+  }
+  if ( n <= 0 || n %% 1 != 0) {
+    stop("El tamaño de muestra n debe ser entero y mayor que 0")
+  }
+  if (any((dim(cov_propuesta) != c(2,2)))) {
+    stop("La matriz de covariancia debe ser de 2x2")
+  }
+  
+  r_propuesta <-  function(media) rmvnorm(n = 1,mean = media,sigma = cov_propuesta)
+  d_propuesta <- function(x, media) dmvnorm(x = x,mean = media,sigma = cov_propuesta)
+  
   muestras <- matrix(0,nrow = n,ncol = length(p_inicial))
   muestras[1, ] <- p_inicial
   
@@ -339,8 +354,27 @@ sample_mh <- function(n, d_objetivo, r_propuesta, d_propuesta, p_inicial = NULL)
   colnames(salida) <- c("iteracion", paste0("dim_",1:length(p_inicial)))
   return(salida)
 }
-
-
 ```
 :::
+
+
+```{r}
+mu <- c(.4,.75) 
+sigma <- matrix(c(1.35,.4,.4,2.4),2)
+d_obj <- function(x) dmvnorm(x,mean = mu,sigma = sigma)
+
+cov_prop <- diag(2)
+
+cadena <- sample_mh(n = 10000,d_objetivo = d_obj, cov_propuesta = cov_prop, p_inicial = c(0,0))
+
+```
+
+
+
+```{r}
+#| fig-cap: "Titulos"
+#| fig-subcap: "lallala"
+plot_hotmap(muestra = cadena, d_objetivo = d_obj, puntos = F)
+
+```
 
