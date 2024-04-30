@@ -36,6 +36,22 @@ theme_set(theme_bw())
 ```
 
 
+# Introducción
+
+Uno de los grandes problemas en el mundo de la estadistica es que existen distribuciones cuyas funciones de densidad son tan complejas que es difil de trabajar con estas, es por esto que muchas veces resulta de utilidad trabajar con muestras aleatorias de estas variables, y a partir de estas muestras resppnder determinadas preguntas. En la práctica, es comun encontrarse con variables aleatorias con función de densidad cuyo muestreo directo no es simple. 
+
+Para estos casos existen distintas técnicas que nos permiten obtener muestras que, si bien no son tomadas de manera realmente independiente, se comportan de manera muy similar a como lo haría una muestra aleatoria independiente tomada de la función de densidad. Un método sencillo de emplear y que reporta buenos resultados es Metropolis-Hastings. 
+
+Cuando n tiende al infinito asegura convergencia????
+
+, es por esto que el algortmo de Metropolis-Hastings es de tanta utilidad
+
+En el campo de la estadistica bayesiana esto es especialmente util para obtener muestras de un parametro cuya funcion de densidad a posteriori es compleja.
+
+Uno de los grandes problemas en el mundo de la estadistica es extraer muestras de funciones de densidad complejas que es difil de trabajar con estas 
+
+ES importante en la estadistica bayesiana poder extraer muestras de nuestro parametro estimado, pero que pasa cuando la distribucion a posteriori de este es compleja
+
 # Metropolis-Hasting en una dimensión
   
 A continuación se presenta...
@@ -426,6 +442,11 @@ prob_2 <- pmvnorm(lower = c(1, 2), upper = c(Inf, Inf), mean = mu, sigma = sigma
 
 prob_3 <- pmvnorm(lower = c(0.4, 0.75), upper = c(Inf, Inf), mean = mu, sigma = sigma)
 
+
+as.numeric(prob_1)
+as.numeric(prob_2)
+as.numeric(prob_3)
+
 ```
 
 ```{r}
@@ -467,7 +488,7 @@ plot_hotmap(cadena_p$muestra_mh[-1], d_objetivo = d_obj_p, puntos = F)
 ```{r}
 cov_prop_p <- diag(c(0.5, 0.5))
 
-cadena_p <- sample_mh_mv(n = 5000, d_objetivo = d_obj_p, cov_propuesta = cov_prop_p, p_inicial = c(0,0))
+cadena_p <- sample_mh_mv(n = 25000, d_objetivo = d_obj_p, cov_propuesta = cov_prop_p, p_inicial = c(0,0))
 
 cadena_p$probabilidad_aceptacion
 
@@ -482,8 +503,6 @@ plot_hotmap(cadena_p$muestra_mh[-1], d_objetivo = d_obj_p, puntos = F)
 
 
 ```{r}
-
-
 # i
 mean((cadena_p$muestra_mh$dim_1 > 0 & cadena_p$muestra_mh$dim_1 < 1) & 
        (cadena_p$muestra_mh$dim_2 > 0 & cadena_p$muestra_mh$dim_2 < 1))
@@ -498,13 +517,13 @@ mean((cadena_p$muestra_mh$dim_1 > 1 & cadena_p$muestra_mh$dim_1 < 2) &
 ```
 
 ```{r}
-grilla <- expand.grid(x1 = seq(-2.5, 2.5, length.out = 100),
-            x2 = seq(-1, 6, length.out = 100)) 
-grilla$densidad <- as.matrix(d_obj_p(grilla)) 
-grilla |> `colnames<-`(c("x", "y", "Densidad"))
+d_integral <- function(x, y) exp(-((0.5-x)^2 + 5 *(y-x^2)^2))
 
-grilla |> filter((x > 0 & x < 1) & (y > 0 & y < 1)) |> summarise(prob = sum(Densidad))
+integral2(d_integral, xmin = 0, xmax = 1, ymin = 0, ymax = 1)$Q
 
+integral2(d_integral, xmin = -1, xmax = 0, ymin = 0, ymax = 1)$Q
+
+integral2(d_integral, xmin = 1, xmax = 2, ymin = 2, ymax = 3)$Q
 
 ```
 
