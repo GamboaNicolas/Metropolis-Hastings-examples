@@ -14,7 +14,9 @@ plot_trace <- function(muestra) {
       pivot_longer(dim_1:dim_2, names_to = "dimension", values_to = "x") |> 
       ggplot() +
       geom_line(aes(x = iteracion, y = x, color = dimension)) +
-      labs(x = "Iteración", y = "Muestra")
+      labs(x = "Iteración", y = "Muestra") +
+      facet_wrap(~dimension, ncol = 1) +
+      theme(legend.position = "None")
   } else {
     
     muestra |>
@@ -39,13 +41,10 @@ plot_autocor <- function(muestra) {
 
 plot_hotmap <- function(muestra, d_objetivo, puntos = T) {
   
-  if (ncol(muestra) != (2+1)) {
-    
-  }
-  
   df_grilla <- expand.grid(x = seq(min(muestra$dim_1),max(muestra$dim_1), length.out = 200),
                            y = seq(min(muestra$dim_2),max(muestra$dim_2), length.out = 200))
-  df_grilla$z <- d_objetivo(as.matrix(df_grilla))
+  df_grilla$z <- d_objetivo(df_grilla)
+  df_grilla <- as.matrix(df_grilla)
   
   hotmap <- muestra |> 
     ggplot(aes(x = dim_1, y = dim_2)) +

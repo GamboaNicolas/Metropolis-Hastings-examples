@@ -439,6 +439,78 @@ cadena_p$probabilidad_aceptacion
 
 acf(cadena_p$muestra_mh[-1]) # Decorar
 
+plot_trace(cadena_p$muestra_mh)
+
+plot_hotmap(cadena_p$muestra_mh[-1], d_objetivo = d_obj_p, puntos = F)
+
 
 ```
 
+
+```{r}
+cov_prop_p <- diag(c(1, 1))
+
+cadena_p <- sample_mh_mv(n = 5000, d_objetivo = d_obj_p, cov_propuesta = cov_prop_p, p_inicial = c(0,0))
+
+cadena_p$probabilidad_aceptacion
+
+acf(cadena_p$muestra_mh[-1]) # Decorar
+
+plot_trace(cadena_p$muestra_mh)
+
+plot_hotmap(cadena_p$muestra_mh[-1], d_objetivo = d_obj_p, puntos = F)
+
+
+```
+
+
+```{r}
+cov_prop_p <- diag(c(0.5, 0.5))
+
+cadena_p <- sample_mh_mv(n = 5000, d_objetivo = d_obj_p, cov_propuesta = cov_prop_p, p_inicial = c(0,0))
+
+cadena_p$probabilidad_aceptacion
+
+
+acf(cadena_p$muestra_mh[-1]) # Decorar
+
+plot_trace(cadena_p$muestra_mh)
+
+plot_hotmap(cadena_p$muestra_mh[-1], d_objetivo = d_obj_p, puntos = F)
+
+```
+
+
+```{r}
+
+
+# i
+mean((cadena_p$muestra_mh$dim_1 > 0 & cadena_p$muestra_mh$dim_1 < 1) & 
+       (cadena_p$muestra_mh$dim_2 > 0 & cadena_p$muestra_mh$dim_2 < 1))
+
+# ii
+mean((cadena_p$muestra_mh$dim_1 > -1 & cadena_p$muestra_mh$dim_1 < 0) & 
+       (cadena_p$muestra_mh$dim_2 > 0 & cadena_p$muestra_mh$dim_2 < 1))
+
+# iii
+mean((cadena_p$muestra_mh$dim_1 > 1 & cadena_p$muestra_mh$dim_1 < 2) & 
+       (cadena_p$muestra_mh$dim_2 > 2 & cadena_p$muestra_mh$dim_2 < 3))
+```
+
+```{r}
+grilla <- expand.grid(x1 = seq(-2.5, 2.5, length.out = 100),
+            x2 = seq(-1, 6, length.out = 100)) 
+grilla$densidad <- as.matrix(d_obj_p(grilla)) 
+grilla |> `colnames<-`(c("x", "y", "Densidad"))
+
+grilla |> filter((x > 0 & x < 1) & (y > 0 & y < 1)) |> summarise(prob = sum(Densidad))
+
+
+```
+
+
+# Preguntas y propuestas
+
+Agregar n_eff en mh univarido
+Preguntar por la probabilidad de salto en mh_multivariado
+comparar las probabilidades tmb por monte carlo
