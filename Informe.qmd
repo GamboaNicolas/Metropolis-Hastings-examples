@@ -7,6 +7,7 @@ lang: es
 echo: FALSE
 message: FALSE
 warning: FALSE
+tbl-cap-location: bottom
 geometry:
   - top= 25mm
   - left= 20mm
@@ -482,7 +483,7 @@ valores <- tibble(
 
 
 ```{r tablita fachera 2}
-#| tbl-cap: "Media y percentiles estimadas para las funciones $X$ y $Logit(X)$"
+#| tbl-cap: "Media y quantiles estimadas para las funciones $X$ y $Logit(X)$"
 
 valores |> 
   tt() |> 
@@ -506,7 +507,7 @@ valores_reales <- tibble(
 
 
 ```{r valores reales kuma 2}
-#| tbl-cap: "Media y percentiles para las funciones $X$ y $Logit(X)$"
+#| tbl-cap: "Media y quantiles para las funciones $X$ y $Logit(X)$"
 
 valores_reales |> 
   tt()
@@ -591,11 +592,11 @@ Donde $\mu^* = \begin{bmatrix} 0.4 \\ 0.75 \end{bmatrix}$ y $\Sigma^* = \begin{b
 
 Se plantean 3 matrices de covarianzas distintas como propuestas para observar con cual de estas se obtienen muestras mas aproximadas a la verdadera distribución:
 
-1. $\Sigma^* = \begin{bmatrix} 1 & 0 \\ 0 & 2 \end{bmatrix}$ Se puede ver en @fig-cov1 y @fig-trace-cov1
+1. $\Sigma_1 = \begin{bmatrix} 1 & 0 \\ 0 & 2 \end{bmatrix}$ Se puede ver en @fig-cov1 y @fig-trace-cov1
 
-2. $\Sigma^* = \begin{bmatrix} 0.25 & 0 \\ 0 & 0.25 \end{bmatrix}$ Se puede ver en @fig-cov2 y @fig-trace-cov2
+2. $\Sigma_2 = \begin{bmatrix} 0.25 & 0 \\ 0 & 0.25 \end{bmatrix}$ Se puede ver en @fig-cov2 y @fig-trace-cov2
 
-3. $\Sigma^* = \begin{bmatrix} 1 & 0.3 \\ 0.3 & 1 \end{bmatrix}$ Se puede ver en @fig-cov3 y @fig-trace-cov3
+3. $\Sigma_3 = \begin{bmatrix} 1 & 0.3 \\ 0.3 & 1 \end{bmatrix}$ Se puede ver en @fig-cov3 y @fig-trace-cov3
 
 ```{r}
 mu <- c(.4,.75) 
@@ -615,14 +616,14 @@ cadena3 <- sample_mh_mv(n = 5000,d_objetivo = d_obj, cov_propuesta = cov_prop_3,
 
 
 ```{r distribucion normal bivariada 1}
-#| fig-cap: "Distribución de las muestras obtenidas por Metropolis-Hastings de una $\\mathcal{N}_2(\\mu^*, \ \\Sigma^*)$"
+#| fig-cap: "Distribución de las muestras obtenidas por Metropolis-Hastings de una $\\mathcal{N}_2(\\mu^*, \ \\Sigma^*)$ con $\\Sigma_1$ como propuesta"
 #| label: fig-cov1
 
 plot_hotmap(muestra = cadena1$muestra_mh, d_objetivo = d_obj, puntos = F)
 ```
 
 ```{r traceplot normal bivariada 1}
-#| fig-cap: "Cadena de Markov de las muestras obtenidas por Metropolis-Hastings de una $\\mathcal{N}_2(\\mu^*, \ \\Sigma^*)$"
+#| fig-cap: "Cadena de Markov de las muestras obtenidas por Metropolis-Hastings de una $\\mathcal{N}_2(\\mu^*, \ \\Sigma^*)$ con $\\Sigma_1$ como propuesta"
 #| label: fig-trace-cov1
 
 plot_trace(muestra = cadena1$muestra_mh)
@@ -630,7 +631,7 @@ plot_trace(muestra = cadena1$muestra_mh)
 ```
 
 ```{r distribucion normal bivariada 2}
-#| fig-cap: "Distribución de las muestras obtenidas por Metropolis-Hastings de una $\\mathcal{N}_2(\\mu^*, \ \\Sigma^*)$"
+#| fig-cap: "Distribución de las muestras obtenidas por Metropolis-Hastings de una $\\mathcal{N}_2(\\mu^*, \ \\Sigma^*)$ con $\\Sigma_2$ como propuesta"
 #| label: fig-cov2
 
 plot_hotmap(muestra = cadena2$muestra_mh, d_objetivo = d_obj, puntos = F)
@@ -638,7 +639,7 @@ plot_hotmap(muestra = cadena2$muestra_mh, d_objetivo = d_obj, puntos = F)
 
 
 ```{r traceplot normal bivariada 2}
-#| fig-cap: "Cadena de Markov de las muestras obtenidas por Metropolis-Hastings de una $\\mathcal{N}_2(\\mu^*, \ \\Sigma^*)$"
+#| fig-cap: "Cadena de Markov de las muestras obtenidas por Metropolis-Hastings de una $\\mathcal{N}_2(\\mu^*, \ \\Sigma^*)$ con $\\Sigma_2$ como propuesta"
 #| label: fig-trace-cov2
 
 plot_trace(muestra = cadena2$muestra_mh)
@@ -646,7 +647,7 @@ plot_trace(muestra = cadena2$muestra_mh)
 
 
 ```{r distribucion normal bivariada 3}
-#| fig-cap: "Distribución de las muestras obtenidas por Metropolis-Hastings de una $\\mathcal{N}_2(\\mu^*, \ \\Sigma^*)$"
+#| fig-cap: "Distribución de las muestras obtenidas por Metropolis-Hastings de una $\\mathcal{N}_2(\\mu^*, \ \\Sigma^*)$ con $\\Sigma_3$ como propuesta"
 #| label: fig-cov3
 
 plot_hotmap(muestra = cadena3$muestra_mh, d_objetivo = d_obj, puntos = F)
@@ -654,121 +655,230 @@ plot_hotmap(muestra = cadena3$muestra_mh, d_objetivo = d_obj, puntos = F)
 
 
 ```{r traceplot normal bivariada 3}
-#| fig-cap: "Cadena de Markov de las muestras obtenidas por Metropolis-Hastings de una $\\mathcal{N}_2(\\mu^*, \ \\Sigma^*)$"
+#| fig-cap: "Cadena de Markov de las muestras obtenidas por Metropolis-Hastings de una $\\mathcal{N}_2(\\mu^*, \ \\Sigma^*)$ con $\\Sigma_3$ como propuesta"
 #| label: fig-trace-cov3
 
 plot_trace(muestra = cadena3$muestra_mh)
 ```
 
+(Chamuyar acerca de la mejor matriz de covarianzas... utilizando las estadisticas de bondad de la muestra)
 
+\newpage
 
-Probabilidades
-```{r}
+Para ver la bondad de la muestra generada por Metropolis-Hastings, se calculan ciertas probabilidades y luego se comparan con otros métodos de cálculo de probabilidades, como "Función de distribución" y "Método de MonteCarlo".
+
+```{r calculo de las probabilidades normal bivariada estimadas}
 # i
-mean(cadena1$muestra_mh$dim_1 > 1 & cadena1$muestra_mh$dim_2 < 0)
+probabilidad_p8_1 <- mean(cadena1$muestra_mh$dim_1 > 1 & cadena1$muestra_mh$dim_2 < 0) |> round(4)
 
 # ii
-mean(cadena1$muestra_mh$dim_1 > 1 & cadena1$muestra_mh$dim_2 > 2)
+probabilidad_p8_2 <- mean(cadena1$muestra_mh$dim_1 > 1 & cadena1$muestra_mh$dim_2 > 2) |> round(4)
 
 # iii
-mean(cadena1$muestra_mh$dim_1 > 0.4 & cadena1$muestra_mh$dim_2 > 0.75)
+probabilidad_p8_3 <- mean(cadena1$muestra_mh$dim_1 > 0.4 & cadena1$muestra_mh$dim_2 > 0.75) |> round(4)
+
+# i funcion de distribucion
+prob_1 <- as.numeric(pmvnorm(lower = c(1, -Inf), upper = c(Inf, 0), mean = mu, sigma = sigma)) |> round(4)
+
+# ii funcion de distribucion
+prob_2 <- as.numeric(pmvnorm(lower = c(1, 2), upper = c(Inf, Inf), mean = mu, sigma = sigma)) |> round(4)
+
+# iii funcion de distribucion
+prob_3 <- as.numeric(pmvnorm(lower = c(0.4, 0.75), upper = c(Inf, Inf), mean = mu, sigma = sigma)) |> round(4)
+
+muestras_normal_bivariada <- rmvnorm(5000, mean = c(0.4, 0.75), sigma = matrix(c(1.35,.4,.4,2.4),2)) |> round(4)
+
+# i MCMC
+prob_1_mcmc <- mean(muestras_normal_bivariada[,1] > 1 & muestras_normal_bivariada[,2] < 0) |> round(4)
+
+# ii MCMC
+prob_2_mcmc <- mean(muestras_normal_bivariada[,1] > 1 & muestras_normal_bivariada[,2] > 2) |> round(4)
+
+# iii MCMC
+prob_3_mcmc <- mean(muestras_normal_bivariada[,1] > 0.4 & muestras_normal_bivariada[,2] > 0.75) |> round(4)
 
 ```
 
+```{r tabla para probabilidad p8}
+filas <- c("M-H", "Función de \ndistribución", "MC")
 
-```{r}
-
-prob_1 <- pmvnorm(lower = c(1, -Inf), upper = c(Inf, 0), mean = mu, sigma = sigma)
-
-prob_2 <- pmvnorm(lower = c(1, 2), upper = c(Inf, Inf), mean = mu, sigma = sigma)
-
-prob_3 <- pmvnorm(lower = c(0.4, 0.75), upper = c(Inf, Inf), mean = mu, sigma = sigma)
-
-
-as.numeric(prob_1)
-as.numeric(prob_2)
-as.numeric(prob_3)
-
+probabilidades_nb <- tibble(
+  var = filas,
+  p1 = c(probabilidad_p8_1, prob_1, prob_1_mcmc),
+  p2 = c(probabilidad_p8_2, prob_2, prob_2_mcmc),
+  p3 = c(probabilidad_p8_3, prob_3, prob_3_mcmc)
+) |> `colnames<-`(c("Método","$P(X_1 > 1, X_2 < 0)$", "$P(X_1 > 1, X_2 > 2)$", "$P(X_1 > 0.4, X_2 > 0.75)$"))
 ```
 
-```{r}
+```{r tabla probabilidades 1}
+#| tbl-cap: "Cálculo de probablidades con distintos métodos"
+
+probabilidades_nb |> 
+  tt() |> 
+  style_tt(
+    j = 1:4,
+    line = "tblr",
+    line_width = 0.1,
+    line_color = "black")
+```
+
+Podemos concluir que las estimaciones de las probabilidades calculadas son bastante acertadas, debido a su similitud con los otros métodos.
+
+## Función de Rosenbrock
+
+Es una función matemática utilizada frecuentemente como prueba de algoritmos de optimización numérica. En el campo de la Estadística Bayesiana, es muy conocida dado que la densidad del posterior toma una forma que definitivamente se asemeja a la _banana de Rosenbrock_. (Redactar??)
+
+La densidad de ésta función viene dada por: $p^*(x_1,x_2|a,b) = exp\{-[(a-x_1)^2+b(x_2-x_1^2)^2]\}$
+
+Para poner a prueba el algoritmo de Metropolis-Hastings bivariado en situaciones complejas, se decide obtener 5000 muestras de la función anteriormente mencionada, con parámetros $a = 0.5$ y $b = 5$. Se utilizan 3 distintas matrices de covarianzas propuestas, las cuáles son:
+
+1. $\Sigma_1 = \begin{bmatrix} 0.06 & 0 \\ 0 & 0.07 \end{bmatrix}$ Se puede ver su densidad en @fig-banana1 y el recorrido de la cadena en @fig-bananatrace1. Con esta matriz la probabilidad de aceptación es (insertar valor)
+
+2. $\Sigma_2 = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}$ Se puede ver su densidad en @fig-banana2 y el recorrido de la cadena en @fig-bananatrace2. Con esta matriz la probabilidad de aceptación es (insertar valor)
+
+3. $\Sigma_3 = \begin{bmatrix} 0.5 & 0 \\ 0 & 0.5 \end{bmatrix}$ Se puede ver su densidad en @fig-banana3 y el recorrido de la cadena en @fig-bananatrace3. Con esta matriz la probabilidad de aceptación es (insertar valor)
+
+```{r banana de rosenbrock 1}
 d_obj_p <- function(x, a = 0.5, b = 5) exp(-((a-x[1])^2 + b *(x[2]-x[1]^2)^2))
 
 cov_prop_p <- diag(c(0.06, 0.07))
 
 cadena_p <- sample_mh_mv(n = 5000, d_objetivo = d_obj_p, cov_propuesta = cov_prop_p, p_inicial = c(0,0))
 
-cadena_p$probabilidad_aceptacion
-
-acf(cadena_p$muestra_mh[-1], plot = F) # Decorar
-
-plot_trace(cadena_p$muestra_mh)
-
-plot_hotmap(cadena_p$muestra_mh[-1], d_objetivo = d_obj_p, puntos = F)
-
-
+# cadena_p$probabilidad_aceptacion
+# 
+# acf(cadena_p$muestra_mh[-1], plot = F) # Decorar
 ```
 
 
-```{r}
+```{r hotmap de rosenbrock 1}
+#| fig-cap: "Distribución de las muestras obtenidas por Metropolis-Hastings de $p^*$ con $\\Sigma_1$ como propuesta"
+#| label: fig-banana1
+
+plot_hotmap(cadena_p$muestra_mh[-1], d_objetivo = d_obj_p, puntos = F)
+```
+
+```{r traceplot banana de rosenbrock 1}
+#| fig-cap: "Cadena de Markov de las muestras obtenidas por Metropolis-Hastings de $p^*$ con $\\Sigma_1$ como propuesta"
+#| label: fig-bananatrace1
+
+plot_trace(cadena_p$muestra_mh)
+```
+
+
+
+```{r banana de rosenbrock 2}
 cov_prop_p <- diag(c(1, 1))
 
 cadena_p <- sample_mh_mv(n = 5000, d_objetivo = d_obj_p, cov_propuesta = cov_prop_p, p_inicial = c(0,0))
 
-cadena_p$probabilidad_aceptacion
-
-acf(cadena_p$muestra_mh[-1], plot = F) # Decorar
-
-plot_trace(cadena_p$muestra_mh)
-
-plot_hotmap(cadena_p$muestra_mh[-1], d_objetivo = d_obj_p, puntos = F)
-
-
+# cadena_p$probabilidad_aceptacion
+# 
+# acf(cadena_p$muestra_mh[-1], plot = F) # Decorar
 ```
 
+```{r hotmap de rosenbrock 2}
+#| fig-cap: "Distribución de las muestras obtenidas por Metropolis-Hastings de $p^*$ con $\\Sigma_2$ como propuesta"
+#| label: fig-banana2
 
-```{r}
+plot_hotmap(cadena_p$muestra_mh[-1], d_objetivo = d_obj_p, puntos = F)
+```
+
+```{r traceplot banana de rosenbrock 2}
+#| fig-cap: "Cadena de Markov de las muestras obtenidas por Metropolis-Hastings de $p^*$ con $\\Sigma_2$ como propuesta"
+#| label: fig-bananatrace2
+
+plot_trace(cadena_p$muestra_mh)
+```
+
+```{r banana de rosenbrock 3}
 cov_prop_p <- diag(c(0.5, 0.5))
 
 cadena_p <- sample_mh_mv(n = 5000, d_objetivo = d_obj_p, cov_propuesta = cov_prop_p, p_inicial = c(0,0))
 
-cadena_p$probabilidad_aceptacion
+# cadena_p$probabilidad_aceptacion
+# 
+# 
+# acf(cadena_p$muestra_mh[-1], plot = F) # Decorar
+```
 
-
-acf(cadena_p$muestra_mh[-1], plot = F) # Decorar
-
-plot_trace(cadena_p$muestra_mh)
+```{r banana de rosenbrock 3}
+#| fig-cap: "Distribución de las muestras obtenidas por Metropolis-Hastings de $p^*$ con $\\Sigma_3$ como propuesta"
+#| label: fig-banana3
 
 plot_hotmap(cadena_p$muestra_mh[-1], d_objetivo = d_obj_p, puntos = F)
-
 ```
 
+```{r banana de rosenbrock 3}
+#| fig-cap: "Cadena de Markov de las muestras obtenidas por Metropolis-Hastings de $p^*$ con $\\Sigma_3$ como propuesta"
+#| label: fig-bananatrace3
 
-```{r}
+plot_trace(cadena_p$muestra_mh)
+```
+
+(Hablar acerca de la probabilidad de aceptación y de con cuál se obtienen las mejores muestras).
+
+\newpage
+
+Para ver la bondad de la muestra generada por Metropolis-Hastings, se calculan ciertas probabilidades y luego se comparan con otros métodos de cálculo de probabilidades, como "Función de distribución" y "Método de MonteCarlo".
+
+Para ver que tan bien funciona Metropolis-Hastings en esta situación compleja, interesa calcular ciertas probabilidades y compararlas con el método de "Integración Manual".
+
+```{r probabilidades p10 1}
 # i
-mean((cadena_p$muestra_mh$dim_1 > 0 & cadena_p$muestra_mh$dim_1 < 1) & 
-       (cadena_p$muestra_mh$dim_2 > 0 & cadena_p$muestra_mh$dim_2 < 1))
+pr_banana1 <- mean((cadena_p$muestra_mh$dim_1 > 0 & cadena_p$muestra_mh$dim_1 < 1) & 
+       (cadena_p$muestra_mh$dim_2 > 0 & cadena_p$muestra_mh$dim_2 < 1)) |> round(4)
 
 # ii
-mean((cadena_p$muestra_mh$dim_1 > -1 & cadena_p$muestra_mh$dim_1 < 0) & 
-       (cadena_p$muestra_mh$dim_2 > 0 & cadena_p$muestra_mh$dim_2 < 1))
+pr_banana2 <- mean((cadena_p$muestra_mh$dim_1 > -1 & cadena_p$muestra_mh$dim_1 < 0) & 
+       (cadena_p$muestra_mh$dim_2 > 0 & cadena_p$muestra_mh$dim_2 < 1)) |> round(4)
 
 # iii
-mean((cadena_p$muestra_mh$dim_1 > 1 & cadena_p$muestra_mh$dim_1 < 2) & 
-       (cadena_p$muestra_mh$dim_2 > 2 & cadena_p$muestra_mh$dim_2 < 3))
+pr_banana3 <- mean((cadena_p$muestra_mh$dim_1 > 1 & cadena_p$muestra_mh$dim_1 < 2) & 
+       (cadena_p$muestra_mh$dim_2 > 2 & cadena_p$muestra_mh$dim_2 < 3)) |> round(4)
 ```
 
-```{r}
+```{r probabilidades p10 2}
 d_integral <- function(x, y) exp(-((0.5-x)^2 + 5 *(y-x^2)^2))
 
-integral2(d_integral, xmin = 0, xmax = 1, ymin = 0, ymax = 1)$Q
+pr_valor_real1 <- integral2(d_integral, xmin = 0, xmax = 1, ymin = 0, ymax = 1)$Q |> round(4)
 
-integral2(d_integral, xmin = -1, xmax = 0, ymin = 0, ymax = 1)$Q
+pr_valor_real2 <- integral2(d_integral, xmin = -1, xmax = 0, ymin = 0, ymax = 1)$Q |> round(4)
 
-integral2(d_integral, xmin = 1, xmax = 2, ymin = 2, ymax = 3)$Q
+pr_valor_real3 <- integral2(d_integral, xmin = 1, xmax = 2, ymin = 2, ymax = 3)$Q |> round(4)
 
 ```
 
+```{r tabla para probabilidad p10 1}
+filas <- c("M-H", "Integración manual")
+
+probabilidades_banana <- tibble(
+  var = filas,
+  p1 = c(pr_banana1, pr_valor_real1),
+  p2 = c(pr_banana2, pr_valor_real2),
+  p3 = c(pr_banana3, pr_valor_real3)
+) |> `colnames<-`(c("Método","$P(0 < X_1 < 1, 0 < X_2 < 1)$", "$P(-1 < X_1 < 0, 0 < X_2 < 1)$", "$P(1 < X_1 < 2, 2 < X_2 < 3)$"))
+```
+
+```{r tabla probabilidades banana 1}
+#| tbl-cap: "Cálculo de probablidades con distintos métodos"
+
+probabilidades_banana |> 
+  tt() |> 
+  style_tt(
+    j = 1:4,
+    line = "tblr",
+    line_width = 0.1,
+    line_color = "black")
+```
+
+Se puede observar que el algoritmo en esta situación falla bastante en la generación de las muestras, dado que la estimación de las probabilidades son muy diferentes a las calculadas por un método casi exacto.
+
+\newpage
+
+# Conclusiones
+
+(Redactar las conclusiones en un futuro no muy lejano ...)
 
 # Preguntas y propuestas
 
@@ -776,3 +886,6 @@ Comparar las probabilidades tmb por monte carlo
 Preguntar por la probabilidad de salto en mh_multivariado
 Como es el numerador del NEFF (Se calcula con una o varias cadenas?)
 Como validar la bondad del metodo en el punto 7, que estadisticas podemos usar?, algun test?
+Punto 8, calculo de probabilidades con una sola cadena?
+Punto 9, Calculo de la probabilidad de aceptacion y funcion de autocorrelacion bivariada.
+Punto 10, se puede considerar integracion manual si lo realizamos con un paquete??
