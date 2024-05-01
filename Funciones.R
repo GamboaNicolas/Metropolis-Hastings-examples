@@ -13,7 +13,7 @@ plot_trace <- function(muestra) {
     muestra |>
       pivot_longer(dim_1:dim_2, names_to = "dimension", values_to = "x") |> 
       ggplot() +
-      geom_line(aes(x = iteracion, y = x, color = dimension)) +
+      geom_line(aes(x = iteracion, y = x, color = dimension), linewidth = 0.5) +
       labs(x = "Iteración", y = "Muestra") +
       facet_wrap(~dimension, ncol = 1) +
       theme(legend.position = "None")
@@ -66,20 +66,20 @@ plot_hotmap <- function(muestra, d_objetivo, puntos = T) {
 
 
 W <- function(muestra) {
-  mean(apply(x, 2, var))
+  mean(apply(muestra, 2, var))
 }
 
-B <- function(x) {
-  media_cadenas <- apply(x, 2, mean)
-  var(media_cadenas) *nrow(x)
+B <- function(muestra) {
+  media_cadenas <- apply(muestra, 2, mean)
+  var(media_cadenas)*nrow(muestra)
 }
 
 R_hat <- function(muestra) {
   
-  S <- nrow(x)
-  M <- ncol(x)
-  W <- W(x)
-  B <- B(x)
+  S <- nrow(muestra)
+  M <- ncol(muestra)
+  W <- W(muestra)
+  B <- B(muestra)
   
   sqrt(((S-1)/S * W + 1/S*B) / W)
 }
@@ -87,11 +87,11 @@ R_hat <- function(muestra) {
 
 n_eff <- function(x) {
   
-  s <- length(x)
+  s <- nrow(x)
   
   autocorrelaciones <- acf(x, plot = F, lag.max = Inf)$acf
   limite <- which(autocorrelaciones < 0.025)[1] # Agregamos un limite para despreciar correlaciones muy chicas
   
-  nrow(x) / (1+ 2 * sum(autocorrelaciones[2:limite]))
+  s / (1 + 2 * sum(autocorrelaciones[2:limite]))
   
 }

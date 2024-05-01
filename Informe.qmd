@@ -53,26 +53,14 @@ Un método sencillo de emplear y que reporta buenos resultados es el algoritmo d
 
 En esta sección se presentan los algoritmo de metrópolis hasting para variables aleatorias unidimensionales y bidimensionales
 
+(Agregar como funciona metropolis-hasting)
 
-:::{.callout-note}
-## Algoritmo Metrópolis-hasting univariado
+::: {.callout-note}
 
-:::
+## Algoritmo Metrópolis-Hasting univariado
 
-# Metropolis-Hasting en una dimensión
-  
-A continuación se presenta...
-
-
-:::callout-note
-## Algoritmo M-H univariado
-
-```{r Algoritmo M-H univariado}
-sample_mh <- function(n, 
-                      d_objetivo, 
-                      r_propuesta = NULL,
-                      d_propuesta = NULL,
-                      p_inicial = NULL){
+```{r algoritmo mh univariado doc, echo = T}
+sample_mh <- function(n, d_objetivo, r_propuesta = NULL, d_propuesta = NULL, p_inicial = NULL){
 
   if (is.null(r_propuesta) | is.null(d_propuesta)) {
     r_propuesta <- function(media) rnorm(n = 1, media, sd = 1)
@@ -82,16 +70,6 @@ sample_mh <- function(n,
   stopifnot(n > 0)
   contador <- 0
   muestras <- numeric(n)
-  
-  # if (is.null(p_inicial)) {
-  #   for(i in 1:1000){
-  #     p_inicial <- runif(1,-100,100)
-  #     if (d_objetivo(p_inicial) != 0) {
-  #       break
-  #     }
-  #   }
-  #   if(i == 1000) stop("Se recomienda introducir un valor para ´p_inicial´")
-  # }
   
   muestras[1] <- p_inicial
 
@@ -109,10 +87,8 @@ sample_mh <- function(n,
     if (f_actual == 0 || q_nuevo == 0) {
       alfa <- 1
     } else {
-      
       alfa <- min(1, (f_nuevo/f_actual)*(q_actual/q_nuevo))
     }
-    
 
     muestras[i] <- sample(c(p_propuesta, p_actual),
     size = 1, prob = c(alfa, 1-alfa))
@@ -125,28 +101,88 @@ sample_mh <- function(n,
        tasa_aceptacion = contador / n))
 }
 
-
-# d_obj <- function(x){
-#   # dnorm(x = x,mean = 90,sd = 8)
-#   return(dbeta(x = x,2,2))
-# }
-# d_obj(-50)
-# muestra <- sample_mh(100000, d_objetivo = d_obj)
-# 
-# muestra |> 
-#   ggplot()+
-#   aes(x = x)+
-#   geom_histogram()
 ```
+
 :::
 
+\newpage
 
-# Distribución de Kumaraswamy
+::: {.callout-note}
 
+## Algoritmo Metrópolis-Hasting bivariado
 
+```{r algoritmo m-h bivariado doc, echo = T}
+sample_mh_mv <- function(n, d_objetivo, cov_propuesta = diag(2), p_inicial = numeric(2)) {
+  
+  if (length(p_inicial) != 2) {
+    stop("El valor p_inicial debe ser bidimensional")
+  }
+  if ( n <= 0 || n %% 1 != 0) {
+    stop("El tamaño de muestra n debe ser entero y mayor que 0")
+  }
+  if (any((dim(cov_propuesta) != c(2,2)))) {
+    stop("La matriz de covariancia debe ser de 2x2")
+  }
+  
+  contador <- 0
+  
+  r_propuesta <-  function(media) rmvnorm(n = 1,mean = media,sigma = cov_propuesta)
+  d_propuesta <- function(x, media) dmvnorm(x = x,mean = media,sigma = cov_propuesta)
+  
+  muestras <- matrix(0,nrow = n,ncol = length(p_inicial))
+  muestras[1, ] <- p_inicial
+  
+  for(i in 2:n) {
+    p_actual <- muestras[i-1,]
+    p_propuesta <- r_propuesta(p_actual)
+    
+    q_actual <- d_propuesta(p_actual, p_propuesta)
+    q_nuevo <- d_propuesta(p_propuesta, p_actual)
+    
+    f_actual <- d_objetivo(p_actual)
+    f_nuevo <- d_objetivo(p_propuesta)
+    
+    
+    if (f_actual == 0 || q_nuevo == 0) {
+      alfa <- 1
+    } else {
+      
+      alfa <- min(1, (f_nuevo/f_actual)*(q_actual/q_nuevo))
+    }
+    
+    aceptar <- rbinom(1,1,alfa)
+    
+    if (aceptar) {
+      muestras[i,] <- p_propuesta
+    }else{
+      muestras[i,] <- p_actual
+    }
+    
+    if(!any(muestras[i,] != muestras[i-1,])) {
+      contador <- contador + 1
+    }
+  }
+  salida <- data.frame(iteracion = 1:n, x = muestras)
+  colnames(salida) <- c("iteracion", paste0("dim_",1:length(p_inicial)))
+  
+  
+  return(list(muestra_mh = salida,
+       probabilidad_aceptacion = contador / n)) # REVISAR -----------
 
+}
+```
+
+:::
+
+# Discusiones
+
+## Distribución de Kumaraswamy
+
+La distribución de Kumaraswamy es una distribución de probabilidad continua que se utiliza para modelar variables aleatorias con soporte en el intervalo $(0,1)$, cuya función de densidad es: $f(x|a,b) = abx^{a-1}(1-x^a)^{b-1}, \ con \ a,b>0$
 
 ```{r distribucion de kumaraswamy}
+#| fig-cap: "Función de densidad de la distribución de Kumaraswamy"
+
 grilla <- seq(0, 1, length.out = 502)[c(-1,-502)]
 d_kuma <- function(x, a = 6, b = 2){
   
@@ -163,7 +199,7 @@ d_kuma <- function(x, a = 6, b = 2){
 
 tibble(
   x = rep(grilla,times = 5),
-  parametros = rep(c("a = 0.5, b = 0.5",
+  Parámetros = rep(c("a = 0.5, b = 0.5",
                      "a = 1, b = 2",
                      "a = 3, b = 4",
                      "a = 6, b = 2",
@@ -177,8 +213,9 @@ tibble(
   )
 ) |> 
   ggplot()+
-  aes(x = x, y = valores,color = parametros)+
-  geom_line(linewidth = 1.2)
+  aes(x = x, y = valores,color = Parámetros)+
+  geom_line(linewidth = 1.2) +
+  labs(x = "X", y = expression(f ~ "("~x~" | a, b)"))
 
 # tibble(
 #   x = rep(grilla,times = 5),
@@ -199,16 +236,89 @@ tibble(
 #   aes(x = x, y = valores,color = parametros)+
 #   geom_line(linewidth = 1.2)
 # 
-
 ```
-
 
 Esta distribución puede ser utilizada en el ámbito de la estadística bayesiana a la hora de definir un prior para un parámetro con campo de variación en el intervalo (0, 1).
 
-Por lo general la distribución elegida para estas situaciones suele ser la beta ya que presenta ventajas como ser una distribución conjugada de la binomial, lo cual puede facilitar mucho algunos cálculos. El problema es que para calcular la densidad de esta es que depende de la función gamma, la cual es una integral, y en algunas situaciones se puede complicar su cálculo.
+Por lo general la distribución elegida para estas situaciones suele ser la beta ya que presenta ventajas como ser una distribución conjugada de la binomial, lo cual puede facilitar mucho algunos cálculos. El problema es que la densidad de esta depende de la función gamma, la cual es una integral, y en algunas situaciones se puede complicar su cálculo.
 
-La distribución de Kumaraswamy se comporta de manera muy similar a la beta, sin tener el problema de la dificultad del cálculo de la densidad. 
+La distribución de Kumaraswamy se comporta de manera muy similar a la beta, sin tener el problema de la dificultad del cálculo de la integral. 
 
+## Metropolis-Hasting en una dimensión
+
+A continuación utilizaremos el algoritmo de Metropolis-Hasting para generar 5000 muestras de la distribución de _Kumaraswamy_ con parámetros $a = 6$ y $b = 2$, utilizando como distribución propuesta una $Beta(\mu, \kappa)$, donde $\mu$ representa la media de la distribución y $\kappa$ el grado de la concentración de la distribución. Esto lo haremos para 3 valores distintos de $\kappa$.
+
+```{r Algoritmo M-H univariado}
+# sample_mh <- function(n,
+#                       d_objetivo,
+#                       r_propuesta = NULL,
+#                       d_propuesta = NULL,
+#                       p_inicial = NULL){
+# 
+#   if (is.null(r_propuesta) | is.null(d_propuesta)) {
+#     r_propuesta <- function(media) rnorm(n = 1, media, sd = 1)
+#     d_propuesta <- function(x, media) dnorm(x = x,media, sd = 1)
+#   }
+# 
+#   stopifnot(n > 0)
+#   contador <- 0
+#   muestras <- numeric(n)
+# 
+#   # if (is.null(p_inicial)) {
+#   #   for(i in 1:1000){
+#   #     p_inicial <- runif(1,-100,100)
+#   #     if (d_objetivo(p_inicial) != 0) {
+#   #       break
+#   #     }
+#   #   }
+#   #   if(i == 1000) stop("Se recomienda introducir un valor para ´p_inicial´")
+#   # }
+# 
+#   muestras[1] <- p_inicial
+# 
+#   for(i in 2:n) {
+# 
+#     p_actual <- muestras[i-1]
+#     p_propuesta <- r_propuesta(p_actual)
+# 
+#     q_actual <- d_propuesta(p_actual, p_propuesta)
+#     q_nuevo <- d_propuesta(p_propuesta, p_actual)
+# 
+#     f_actual <- d_objetivo(p_actual)
+#     f_nuevo <- d_objetivo(p_propuesta)
+# 
+#     if (f_actual == 0 || q_nuevo == 0) {
+#       alfa <- 1
+#     } else {
+# 
+#       alfa <- min(1, (f_nuevo/f_actual)*(q_actual/q_nuevo))
+#     }
+# 
+# 
+#     muestras[i] <- sample(c(p_propuesta, p_actual),
+#     size = 1, prob = c(alfa, 1-alfa))
+# 
+#     if(muestras[i] != muestras[i-1]) {
+#       contador <- contador + 1
+#     }
+#   }
+#   return(list(cadena = data.frame(iteracion = 1:n, x = muestras),
+#        tasa_aceptacion = contador / n))
+# }
+# 
+# 
+# # d_obj <- function(x){
+# #   # dnorm(x = x,mean = 90,sd = 8)
+# #   return(dbeta(x = x,2,2))
+# # }
+# # d_obj(-50)
+# # muestra <- sample_mh(100000, d_objetivo = d_obj)
+# #
+# # muestra |>
+# #   ggplot()+
+# #   aes(x = x)+
+# #   geom_histogram()
+```
 
 ```{r comparacion de las cadenas}
 source("Funciones.R")
@@ -253,28 +363,39 @@ graficos[[i]] <- (tp1 / (hp1 + ap1))
 
 df_cadenas[[i]] <- muestra
 }
+
+neff1 <- n_eff(df_cadenas$data_cadena_1$cadena[2])
+neff2 <- n_eff(df_cadenas$data_cadena_2$cadena[2])
+neff3 <- n_eff(df_cadenas$data_cadena_3$cadena[2])
+rhat <- R_hat(cbind(df_cadenas$data_cadena_1$cadena[2],
+                    df_cadenas$data_cadena_2$cadena[2],
+                    df_cadenas$data_cadena_3$cadena[2]))
 ```
 
 
 ```{r cadena 1}
-#| fig-cap: "Muestreo por Metropolis-Hastings con concentación de 1"
+#| fig-cap: "Muestreo por Metropolis-Hastings con $\\kappa$ = 1"
 
 graficos$Kappa1
 ```
 
 
 ```{r cadena 2}
-#| fig-cap: "Muestreo por Metropolis-Hastings con concentación de 2"
+#| fig-cap: "Muestreo por Metropolis-Hastings con $\\kappa$ = 2"
 
 graficos$Kappa2
 ```
 
 
 ```{r cadena 3}
-#| fig-cap: "Muestreo por Metropolis-Hastings con concentación de 5"
+#| fig-cap: "Muestreo por Metropolis-Hastings con $\\kappa$ = 5"
 
 graficos$Kappa5
 ```
+
+Teniendo en cuenta que estas muestras no son independientes resulta de interés conocer a cuantas muestras independientes equivalen, para ello se calcula el número efectivo de muestras $(n_{eff})$ para cada cadena.
+
+Para el $\kappa = 1$, el $n_{eff} =$ `r floor(neff1)`, para el $\kappa = 2$, el $n_{eff} =$ `r floor(neff2)` y para el $\kappa = 5$, el $n_{eff} =$ `r floor(neff3)`, por lo tanto las muestras obtenidas a partir de un muestreo con un $\kappa = 5$ son las que equivalen a un mayor número de muestras independientes. (Redactar mejor)
 
 ```{r funcion x}
 # Cadena 1
@@ -308,6 +429,7 @@ percentiles_lg_3 <- quantile(logit(df_cadenas$data_cadena_3$cadena$x), c(0.05,0.
 
 ```
 
+\newpage
 
 ```{r tablita fachera}
 filas <- rep(c("$X$", "$Logit(X)$"), each = 3)
@@ -319,15 +441,18 @@ valores <- tibble(
   esp_est = c(media_cadena_1, media_cadena_2, media_cadena_3, media_cadena_lg_1, media_cadena_lg_2, media_cadena_lg_3),
   quantil_0.05 = c(percentiles_1[1], percentiles_2[1], percentiles_3[1], percentiles_lg_1[1], percentiles_lg_2[1], percentiles_lg_3[1]),
   quantil_0.95 = c(percentiles_1[2], percentiles_2[2], percentiles_3[2], percentiles_lg_1[2], percentiles_lg_2[2], percentiles_lg_3[2])
-)
+) |> 
+  `colnames<-`(c("$f(x)$" ,"$\\kappa$", "$\\hat{E(x)}$", "$\\hat{q_{0.05}}$", "$\\hat{q_{0.95}}$"))
+```
 
-colnames(valores) <- c("$f(x)$" ,"$\\kappa$", "$\\hat{E(x)}$", "$\\hat{q_{0.05}}$", "$\\hat{q_{0.95}}$")
 
-tablita <- valores |> 
+```{r tablita fachera 2}
+#| tbl-cap: "Media y percentiles estimadas para las funciones $X$ y $Logit(X)$"
+
+valores |> 
   tt() |> 
   style_tt(i = c(1,4), j = 1, rowspan = 3, alignv = "t")
   # style_tt(i = c(1,4), j = c(2:5),background = "pink")
-tablita
 ```
 
 
@@ -465,7 +590,7 @@ cadena_p <- sample_mh_mv(n = 5000, d_objetivo = d_obj_p, cov_propuesta = cov_pro
 
 cadena_p$probabilidad_aceptacion
 
-acf(cadena_p$muestra_mh[-1]) # Decorar
+acf(cadena_p$muestra_mh[-1], plot = F) # Decorar
 
 plot_trace(cadena_p$muestra_mh)
 
@@ -482,7 +607,7 @@ cadena_p <- sample_mh_mv(n = 5000, d_objetivo = d_obj_p, cov_propuesta = cov_pro
 
 cadena_p$probabilidad_aceptacion
 
-acf(cadena_p$muestra_mh[-1]) # Decorar
+acf(cadena_p$muestra_mh[-1], plot = F) # Decorar
 
 plot_trace(cadena_p$muestra_mh)
 
@@ -500,7 +625,7 @@ cadena_p <- sample_mh_mv(n = 25000, d_objetivo = d_obj_p, cov_propuesta = cov_pr
 cadena_p$probabilidad_aceptacion
 
 
-acf(cadena_p$muestra_mh[-1]) # Decorar
+acf(cadena_p$muestra_mh[-1], plot = F) # Decorar
 
 plot_trace(cadena_p$muestra_mh)
 
@@ -537,6 +662,6 @@ integral2(d_integral, xmin = 1, xmax = 2, ymin = 2, ymax = 3)$Q
 
 # Preguntas y propuestas
 
-Agregar n_eff en mh univarido
+Comparar las probabilidades tmb por monte carlo
 Preguntar por la probabilidad de salto en mh_multivariado
-comparar las probabilidades tmb por monte carlo
+Como es el numerador del NEFF (Se calcula con una o varias cadenas?)
