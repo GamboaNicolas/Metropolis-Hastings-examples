@@ -52,13 +52,13 @@ Un método sencillo de emplear y que reporta buenos resultados es el algoritmo d
 
 # Metodología
 
-En esta sección se presentan los algoritmo de metrópolis hasting para variables aleatorias unidimensionales y bidimensionales
+En esta sección se presentan los algoritmo de metrópolis Hastingspara variables aleatorias unidimensionales y bidimensionales
 
 (Agregar como funciona metropolis-hasting)
 
 ::: {.callout-note}
 
-## Algoritmo Metrópolis-Hasting univariado
+## Algoritmo Metrópolis-Hastingsunivariado
 
 ```{r algoritmo mh univariado doc, echo = T}
 sample_mh <- function(n, d_objetivo, r_propuesta = NULL, d_propuesta = NULL, p_inicial = NULL){
@@ -110,7 +110,7 @@ sample_mh <- function(n, d_objetivo, r_propuesta = NULL, d_propuesta = NULL, p_i
 
 ::: {.callout-note}
 
-## Algoritmo Metrópolis-Hasting bivariado
+## Algoritmo Metrópolis-Hastingsbivariado
 
 ```{r algoritmo m-h bivariado doc, echo = T}
 sample_mh_mv <- function(n, d_objetivo, cov_propuesta = diag(2), p_inicial = numeric(2)) {
@@ -245,9 +245,9 @@ Por lo general la distribución elegida para estas situaciones suele ser la beta
 
 La distribución de Kumaraswamy se comporta de manera muy similar a la beta, sin tener el problema de la dificultad del cálculo de la integral. 
 
-## Metropolis-Hasting en una dimensión
+## Metropolis-Hastingsen una dimensión
 
-A continuación utilizaremos el algoritmo de Metropolis-Hasting para generar 5000 muestras de la distribución de _Kumaraswamy_ con parámetros $a = 6$ y $b = 2$, utilizando como distribución propuesta una $Beta(\mu, \kappa)$, donde $\mu$ representa la media de la distribución y $\kappa$ el grado de la concentración de la distribución. Esto lo haremos para 3 valores distintos de $\kappa$.
+A continuación utilizaremos el algoritmo de Metropolis-Hastingspara generar 5000 muestras de la distribución de _Kumaraswamy_ con parámetros $a = 6$ y $b = 2$, utilizando como distribución propuesta una $Beta(\mu, \kappa)$, donde $\mu$ representa la media de la distribución y $\kappa$ el grado de la concentración de la distribución. Esto lo haremos para 3 valores distintos de $\kappa$.
 
 ```{r Algoritmo M-H univariado}
 # sample_mh <- function(n,
@@ -465,7 +465,7 @@ kumar_95_lg <- logit(qkumar(p = 0.95, shape1 = 6, shape2 = 2)) |> round(digits =
 \newpage
 
 
-Resulta de interés ver como afecta la elección del parámetro $\kappa$ al utilizar Metropolis-Hasting para obtener muestras de la distribución de Kumaraswamy usando una distribución $Beta$ como propuesta. Es por esto que se decide obtener la media y ciertos cuantiles sobre las muestras obtenidas y sobre la función Logit de estas.
+Resulta de interés ver como afecta la elección del parámetro $\kappa$ al utilizar Metropolis-Hastingspara obtener muestras de la distribución de Kumaraswamy usando una distribución $Beta$ como propuesta. Es por esto que se decide obtener la media y ciertos cuantiles sobre las muestras obtenidas y sobre la función Logit de estas.
 
 ```{r tablita fachera}
 filas <- rep(c("$X$", "$Logit(X)$"), each = 3)
@@ -512,15 +512,15 @@ valores_reales |>
   tt()
 ```
 
-Si bien las diferencias en dispersión de las muestras no son muy perceptibles a simple vista, gracias a la funcióm logit podemos percibirlas con mayor facilidad. Es así que se puede concluir que un $\kappa$
-
-# Metropolis-Hasting en dos dimensiónes
+Si bien las diferencias en dispersión de las muestras no son muy perceptibles a simple vista, gracias a la funcióm logit podemos percibirlas con mayor facilidad. Es así que se puede concluir que usando una distribución $Beta$ con un parámetro $\kappa = 2$ de concentración, es que se obtienen las estimaciones más cercanas a la distribución de Kumaraswamy con parámetros $a = 6$ y $b = 2$. 
 
 
+## Metropolis-Hastings en dos dimensiones
 
 
+El algoritmo de Metropolis-Hastings se aprecia más cuando se obtienen muestras de distribuciones en más de una dimensión, incluso cuando no se conoce la constante de normalización, sin embargo tiene limitaciones para cierta funciones, las cuales se verán a continuación.
 
-:::callout-note
+
 
 ```{r}
 sample_mh_mv <- function(n, d_objetivo, cov_propuesta = diag(2), p_inicial = numeric(2)) {
@@ -582,43 +582,96 @@ sample_mh_mv <- function(n, d_objetivo, cov_propuesta = diag(2), p_inicial = num
 
 }
 ```
-:::
 
+Se quiere obtener muestras de una distribución Normal bivariada con media , para ello se aplica el algoritmo de Metropolis-Hastings y se proponen 
+
+Para testear el algoritmo de Metropolis-Hastings bivariado creado, se decide obtener muestras de una distribución Normal bivariada con vector de media $\mu^*$ y matriz de covarianza $\Sigma^*$ con el algoritmo ya mencionado.
+
+Donde $\mu^* = \begin{bmatrix} 0.4 \\ 0.75 \end{bmatrix}$ y $\Sigma^* = \begin{bmatrix} 1.35 & 0.4 \\ 0.4 & 2.4 \end{bmatrix}$.
+
+Se plantean 3 matrices de covarianzas distintas como propuestas para observar con cual de estas se obtienen muestras mas aproximadas a la verdadera distribución:
+
+1. $\Sigma^* = \begin{bmatrix} 1 & 0 \\ 0 & 2 \end{bmatrix}$ Se puede ver en @fig-cov1 y @fig-trace-cov1
+
+2. $\Sigma^* = \begin{bmatrix} 0.25 & 0 \\ 0 & 0.25 \end{bmatrix}$ Se puede ver en @fig-cov2 y @fig-trace-cov2
+
+3. $\Sigma^* = \begin{bmatrix} 1 & 0.3 \\ 0.3 & 1 \end{bmatrix}$ Se puede ver en @fig-cov3 y @fig-trace-cov3
 
 ```{r}
 mu <- c(.4,.75) 
 sigma <- matrix(c(1.35,.4,.4,2.4),2)
 d_obj <- function(x) dmvnorm(x,mean = mu,sigma = sigma)
 
-cov_prop <- diag(2)
+cov_prop_1 <- diag(c(1,2))
+cov_prop_2 <- diag(c(0.25,0.25))
+cov_prop_3 <- matrix(c(1,0.3,0.3,1), ncol = 2)
 
-cadena <- sample_mh_mv(n = 10000,d_objetivo = d_obj, cov_propuesta = cov_prop, p_inicial = c(0,0))
-
-```
-
-
-
-```{r}
-#| fig-cap: "Titulos"
-#| fig-subcap: "lallala"
-plot_hotmap(muestra = cadena$muestra_mh, d_objetivo = d_obj, puntos = F)
+cadena1 <- sample_mh_mv(n = 5000,d_objetivo = d_obj, cov_propuesta = cov_prop_1, p_inicial = c(0,0))
+cadena2 <- sample_mh_mv(n = 5000,d_objetivo = d_obj, cov_propuesta = cov_prop_2, p_inicial = c(0,0))
+cadena3 <- sample_mh_mv(n = 5000,d_objetivo = d_obj, cov_propuesta = cov_prop_3, p_inicial = c(0,0))
 
 ```
 
-```{r}
-plot_trace(muestra = cadena$muestra_mh)
+
+
+```{r distribucion normal bivariada 1}
+#| fig-cap: "Distribución de las muestras obtenidas por Metropolis-Hastings de una $\\mathcal{N}_2(\\mu^*, \ \\Sigma^*)$"
+#| label: fig-cov1
+
+plot_hotmap(muestra = cadena1$muestra_mh, d_objetivo = d_obj, puntos = F)
 ```
+
+```{r traceplot normal bivariada 1}
+#| fig-cap: "Cadena de Markov de las muestras obtenidas por Metropolis-Hastings de una $\\mathcal{N}_2(\\mu^*, \ \\Sigma^*)$"
+#| label: fig-trace-cov1
+
+plot_trace(muestra = cadena1$muestra_mh)
+
+```
+
+```{r distribucion normal bivariada 2}
+#| fig-cap: "Distribución de las muestras obtenidas por Metropolis-Hastings de una $\\mathcal{N}_2(\\mu^*, \ \\Sigma^*)$"
+#| label: fig-cov2
+
+plot_hotmap(muestra = cadena2$muestra_mh, d_objetivo = d_obj, puntos = F)
+```
+
+
+```{r traceplot normal bivariada 2}
+#| fig-cap: "Cadena de Markov de las muestras obtenidas por Metropolis-Hastings de una $\\mathcal{N}_2(\\mu^*, \ \\Sigma^*)$"
+#| label: fig-trace-cov2
+
+plot_trace(muestra = cadena2$muestra_mh)
+```
+
+
+```{r distribucion normal bivariada 3}
+#| fig-cap: "Distribución de las muestras obtenidas por Metropolis-Hastings de una $\\mathcal{N}_2(\\mu^*, \ \\Sigma^*)$"
+#| label: fig-cov3
+
+plot_hotmap(muestra = cadena3$muestra_mh, d_objetivo = d_obj, puntos = F)
+```
+
+
+```{r traceplot normal bivariada 3}
+#| fig-cap: "Cadena de Markov de las muestras obtenidas por Metropolis-Hastings de una $\\mathcal{N}_2(\\mu^*, \ \\Sigma^*)$"
+#| label: fig-trace-cov3
+
+plot_trace(muestra = cadena3$muestra_mh)
+```
+
+
 
 Probabilidades
 ```{r}
 # i
-mean(cadena$muestra_mh$dim_1 > 1 & cadena$muestra_mh$dim_2 < 0)
+mean(cadena1$muestra_mh$dim_1 > 1 & cadena1$muestra_mh$dim_2 < 0)
 
 # ii
-mean(cadena$muestra_mh$dim_1 > 1 & cadena$muestra_mh$dim_2 > 2)
+mean(cadena1$muestra_mh$dim_1 > 1 & cadena1$muestra_mh$dim_2 > 2)
 
 # iii
-mean(cadena$muestra_mh$dim_1 > 0.4 & cadena$muestra_mh$dim_2 > 0.75)
+mean(cadena1$muestra_mh$dim_1 > 0.4 & cadena1$muestra_mh$dim_2 > 0.75)
 
 ```
 
@@ -722,3 +775,4 @@ integral2(d_integral, xmin = 1, xmax = 2, ymin = 2, ymax = 3)$Q
 Comparar las probabilidades tmb por monte carlo
 Preguntar por la probabilidad de salto en mh_multivariado
 Como es el numerador del NEFF (Se calcula con una o varias cadenas?)
+Como validar la bondad del metodo en el punto 7, que estadisticas podemos usar?, algun test?

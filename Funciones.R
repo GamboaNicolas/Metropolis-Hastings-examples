@@ -15,8 +15,8 @@ plot_trace <- function(muestra) {
       ggplot() +
       geom_line(aes(x = iteracion, y = x, color = dimension), linewidth = 0.5) +
       labs(x = "Iteración", y = "Muestra") +
-      facet_wrap(~dimension, ncol = 1) +
-      theme(legend.position = "None")
+      facet_wrap(~dimension, ncol = 1, labeller = as_labeller(c(dim_1="x[1]", dim_2="x[2]"), default = label_parsed)) +
+      theme(legend.position = "None", strip.background = element_blank())
   } else {
     
     muestra |>
@@ -50,7 +50,8 @@ plot_hotmap <- function(muestra, d_objetivo, puntos = T) {
     ggplot(aes(x = dim_1, y = dim_2)) +
     geom_density2d_filled() +
     stat_contour(aes(x = x, y = y, z = z), data = df_grilla, col = "white", alpha = 0.5) +
-    labs(fill = "Densidad")
+    labs(x = expression(x[1]),
+         y = expression(x[2]), fill = expression(p^"*" ~ "("~x[1]~", "~x[2]~" | a, b)"))
     
   
   if (puntos) {
