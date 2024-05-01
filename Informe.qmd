@@ -26,6 +26,7 @@ library(mvtnorm)
 library(patchwork)
 library(tinytable)
 library(pracma)
+library(VGAM)
 ```
 
 ```{r Configuraciones predeterminadas}
@@ -367,9 +368,7 @@ df_cadenas[[i]] <- muestra
 neff1 <- n_eff(df_cadenas$data_cadena_1$cadena[2])
 neff2 <- n_eff(df_cadenas$data_cadena_2$cadena[2])
 neff3 <- n_eff(df_cadenas$data_cadena_3$cadena[2])
-rhat <- R_hat(cbind(df_cadenas$data_cadena_1$cadena[2],
-                    df_cadenas$data_cadena_2$cadena[2],
-                    df_cadenas$data_cadena_3$cadena[2]))
+
 ```
 
 
@@ -393,11 +392,33 @@ graficos$Kappa2
 graficos$Kappa5
 ```
 
-Teniendo en cuenta que estas muestras no son independientes resulta de interés conocer a cuantas muestras independientes equivalen, para ello se calcula el número efectivo de muestras $(n_{eff})$ para cada cadena.
+Teniendo en cuenta que estas muestras son dependientes resulta de interés conocer a cuantas muestras independientes equivalen, dado que cuanto más se comporta una cadena de Markov dependiente como una muestra independiente, menor es el error en la aproximación posterior resultante. Para ello se calcula el número efectivo de muestras $(n_{eff})$ para cada cadena.
 
-Para el $\kappa = 1$, el $n_{eff} =$ `r floor(neff1)`, para el $\kappa = 2$, el $n_{eff} =$ `r floor(neff2)` y para el $\kappa = 5$, el $n_{eff} =$ `r floor(neff3)`, por lo tanto las muestras obtenidas a partir de un muestreo con un $\kappa = 5$ son las que equivalen a un mayor número de muestras independientes. (Redactar mejor)
+```{r tabla nro efectivo de muestra}
+cadenas_text <- c("Cadena 1", "Cadena 2", "Cadena 3")
+
+nro_ef_muestras <- tibble(
+  Cadena = cadenas_text,
+  kappa = rep(c(1,2,5)),
+  n_eff = floor(c(neff1,neff2,neff3))
+) |> `colnames<-`(c("Cadena", "$\\kappa$", "$n_{eff}$"))
+```
+
+
+```{r tabla nro efectivo de muestra 2}
+#| tbl-cap: "Numero efectivo de muestras para cadenas de 5000 muestras y distintos valores de $\\kappa$"
+
+nro_ef_muestras |> 
+  tt() 
+```
+
+Con esto concluimos que el valor de $\kappa$ que arroja una muestra relacionada que equivale a una independiente de mayor tamaño es 5. Sin embargo esta cantidad de muestras independientes es muy pobre teniendo en cuenta que el tamaño de la cadena es de 5000 muestras.
+
 
 ```{r funcion x}
+
+# Creación de la tabla
+
 # Cadena 1
 media_cadena_1 <- mean(df_cadenas$data_cadena_1$cadena$x) |> round(3)
 percentiles_1 <- quantile(df_cadenas$data_cadena_1$cadena$x, c(0.05,0.95)) |> round(3)
@@ -410,9 +431,14 @@ percentiles_2 <- quantile(df_cadenas$data_cadena_2$cadena$x, c(0.05,0.95)) |> ro
 media_cadena_3 <- mean(df_cadenas$data_cadena_3$cadena$x) |> round(3)
 percentiles_3 <- quantile(df_cadenas$data_cadena_3$cadena$x, c(0.05,0.95)) |> round(3)
 
-```
+# Media y cuantiles verdaderos
 
-```{r funcion logit}
+g <- function(x) x*d_kuma(x, 6, 2)
+media_kumar <- integrate(g, 0, 1)$value |> round(digits = 3)
+
+kumar_05 <- qkumar(p = 0.05, shape1 = 6, shape2 = 2) |> round(digits = 3)
+kumar_95 <- qkumar(p = 0.95, shape1 = 6, shape2 = 2) |> round(digits = 3)
+
 logit <- function(x) log(x/(1-x))
 
 # Cadena 1
@@ -427,17 +453,26 @@ percentiles_lg_2 <- quantile(logit(df_cadenas$data_cadena_2$cadena$x), c(0.05,0.
 media_cadena_lg_3 <- mean(logit(df_cadenas$data_cadena_3$cadena$x)) |> round(3)
 percentiles_lg_3 <- quantile(logit(df_cadenas$data_cadena_3$cadena$x), c(0.05,0.95)) |> round(3)
 
+# Media y cuantiles verdaderos
+g_lg <- function(x) logit(x)*(d_kuma(x, 6, 2))
+
+media_kumar_lg <- integrate(g_lg, 0, 1)$value |> round(digits = 3)
+kumar_05_lg <- logit(qkumar(p = 0.05, shape1 = 6, shape2 = 2)) |> round(digits = 3)
+kumar_95_lg <- logit(qkumar(p = 0.95, shape1 = 6, shape2 = 2)) |> round(digits = 3)
+
 ```
 
 \newpage
 
+
+Resulta de interés ver como afecta la elección del parámetro $\kappa$ al utilizar Metropolis-Hasting para obtener muestras de la distribución de Kumaraswamy usando una distribución $Beta$ como propuesta. Es por esto que se decide obtener la media y ciertos cuantiles sobre las muestras obtenidas y sobre la función Logit de estas.
+
 ```{r tablita fachera}
 filas <- rep(c("$X$", "$Logit(X)$"), each = 3)
-columnas <- c("Kappa", "Esperanza_estimada", "Quantil_0.05", "Quantil_0.95")
 
 valores <- tibble(
   var = filas,
-  kappa = rep(c(1,2,5), times = 2), 
+  kappa = rep(c("1","2","5"), times = 2), 
   esp_est = c(media_cadena_1, media_cadena_2, media_cadena_3, media_cadena_lg_1, media_cadena_lg_2, media_cadena_lg_3),
   quantil_0.05 = c(percentiles_1[1], percentiles_2[1], percentiles_3[1], percentiles_lg_1[1], percentiles_lg_2[1], percentiles_lg_3[1]),
   quantil_0.95 = c(percentiles_1[2], percentiles_2[2], percentiles_3[2], percentiles_lg_1[2], percentiles_lg_2[2], percentiles_lg_3[2])
@@ -452,10 +487,32 @@ valores <- tibble(
 valores |> 
   tt() |> 
   style_tt(i = c(1,4), j = 1, rowspan = 3, alignv = "t")
-  # style_tt(i = c(1,4), j = c(2:5),background = "pink")
 ```
 
 
+Las estadísticas reales de la distribución de Kumaraswamy son:
+
+```{r valores reales kuma}
+filas <- c("$X$", "$Logit(X)$")
+
+valores_reales <- tibble(
+  var = filas,
+  esp_est = c(media_kumar,media_kumar_lg),
+  quantil_0.05 = c(kumar_05,kumar_05_lg),
+  quantil_0.95 = c(kumar_95,kumar_95_lg)
+) |> 
+  `colnames<-`(c("$f(x)$" ,"$E(x)$", "$q_{0.05}$", "$q_{0.95}$"))
+```
+
+
+```{r valores reales kuma 2}
+#| tbl-cap: "Media y percentiles para las funciones $X$ y $Logit(X)$"
+
+valores_reales |> 
+  tt()
+```
+
+Si bien las diferencias en dispersión de las muestras no son muy perceptibles a simple vista, gracias a la funcióm logit podemos percibirlas con mayor facilidad. Es así que se puede concluir que un $\kappa$
 
 # Metropolis-Hasting en dos dimensiónes
 
@@ -620,7 +677,7 @@ plot_hotmap(cadena_p$muestra_mh[-1], d_objetivo = d_obj_p, puntos = F)
 ```{r}
 cov_prop_p <- diag(c(0.5, 0.5))
 
-cadena_p <- sample_mh_mv(n = 25000, d_objetivo = d_obj_p, cov_propuesta = cov_prop_p, p_inicial = c(0,0))
+cadena_p <- sample_mh_mv(n = 5000, d_objetivo = d_obj_p, cov_propuesta = cov_prop_p, p_inicial = c(0,0))
 
 cadena_p$probabilidad_aceptacion
 
