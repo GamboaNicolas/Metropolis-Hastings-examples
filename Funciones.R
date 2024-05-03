@@ -27,16 +27,47 @@ plot_trace <- function(muestra) {
 }
 
 plot_autocor <- function(muestra) {
-  tibble(
-    rezago = 0:20,
-    autocorrelacion = acf(muestra,lag.max = 20,plot = F)$acf
-  ) |> 
-    ggplot(aes(x = rezago, y = autocorrelacion))+
-    geom_point(size = 2)+
-    geom_col(width = 0.07)+
-    geom_line(linewidth = 1, color = "blue")+
-    geom_hline(yintercept = 0, linewidth = 0.9) +
-    labs(x = "Rezago", y = "Autocorrelación")
+  
+  
+  if (ncol(muestra) == 3) {
+    
+    primero <- tibble(
+      rezago = 0:20,
+      autocorrelacion = acf(muestra$dim_1,lag.max = 20,plot = F)$acf
+    ) |> 
+      ggplot(aes(x = rezago, y = autocorrelacion))+
+      geom_point(size = 2)+
+      geom_col(width = 0.07)+
+      geom_line(linewidth = 1, color = "blue")+
+      geom_hline(yintercept = 0, linewidth = 0.9) +
+      labs(x = "Rezago", y = "Autocorrelación")
+    
+    segundo <- tibble(
+      rezago = 0:20,
+      autocorrelacion = acf(muestra$dim_2,lag.max = 20,plot = F)$acf
+    ) |> 
+      ggplot(aes(x = rezago, y = autocorrelacion))+
+      geom_point(size = 2)+
+      geom_col(width = 0.07)+
+      geom_line(linewidth = 1, color = "blue")+
+      geom_hline(yintercept = 0, linewidth = 0.9) +
+      labs(x = "Rezago", y = "Autocorrelación")
+    
+    primero/segundo
+    
+  } else {
+    
+    tibble(
+      rezago = 0:20,
+      autocorrelacion = acf(muestra$x,lag.max = 20,plot = F)$acf
+    ) |> 
+      ggplot(aes(x = rezago, y = autocorrelacion))+
+      geom_point(size = 2)+
+      geom_col(width = 0.07)+
+      geom_line(linewidth = 1, color = "blue")+
+      geom_hline(yintercept = 0, linewidth = 0.9) +
+      labs(x = "Rezago", y = "Autocorrelación")
+  }
 }
 
 plot_hotmap <- function(muestra, d_objetivo, puntos = T) {
