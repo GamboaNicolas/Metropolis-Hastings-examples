@@ -169,7 +169,7 @@ sample_mh_mv <- function(n, d_objetivo, cov_propuesta = diag(2), p_inicial = num
   
   
   return(list(muestra_mh = salida,
-       probabilidad_aceptacion = contador / n)) # REVISAR -----------
+       probabilidad_aceptacion = contador / n))
 
 }
 ```
@@ -521,69 +521,6 @@ Si bien las diferencias en dispersión de las muestras no son muy perceptibles a
 
 El algoritmo de Metropolis-Hastings se aprecia más cuando se obtienen muestras de distribuciones en más de una dimensión, incluso cuando no se conoce la constante de normalización, sin embargo tiene limitaciones para cierta funciones, las cuales se verán a continuación.
 
-
-
-```{r}
-sample_mh_mv <- function(n, d_objetivo, cov_propuesta = diag(2), p_inicial = numeric(2)) {
-  
-  if (length(p_inicial) != 2) {
-    stop("El valor p_inicial debe ser bidimensional")
-  }
-  if ( n <= 0 || n %% 1 != 0) {
-    stop("El tamaño de muestra n debe ser entero y mayor que 0")
-  }
-  if (any((dim(cov_propuesta) != c(2,2)))) {
-    stop("La matriz de covariancia debe ser de 2x2")
-  }
-  
-  contador <- 0
-  
-  r_propuesta <-  function(media) rmvnorm(n = 1,mean = media,sigma = cov_propuesta)
-  d_propuesta <- function(x, media) dmvnorm(x = x,mean = media,sigma = cov_propuesta)
-  
-  muestras <- matrix(0,nrow = n,ncol = length(p_inicial))
-  muestras[1, ] <- p_inicial
-  
-  for(i in 2:n) {
-    p_actual <- muestras[i-1,]
-    p_propuesta <- r_propuesta(p_actual)
-    
-    q_actual <- d_propuesta(p_actual, p_propuesta)
-    q_nuevo <- d_propuesta(p_propuesta, p_actual)
-    
-    f_actual <- d_objetivo(p_actual)
-    f_nuevo <- d_objetivo(p_propuesta)
-    
-    
-    if (f_actual == 0 || q_nuevo == 0) {
-      alfa <- 1
-    } else {
-      
-      alfa <- min(1, (f_nuevo/f_actual)*(q_actual/q_nuevo))
-    }
-    
-    aceptar <- rbinom(1,1,alfa)
-    
-    if (aceptar) {
-      muestras[i,] <- p_propuesta
-    }else{
-      muestras[i,] <- p_actual
-    }
-    
-    if(!any(muestras[i,] != muestras[i-1,])) {
-      contador <- contador + 1
-    }
-  }
-  salida <- data.frame(iteracion = 1:n, x = muestras)
-  colnames(salida) <- c("iteracion", paste0("dim_",1:length(p_inicial)))
-  
-  
-  return(list(muestra_mh = salida,
-       probabilidad_aceptacion = contador / n)) # REVISAR -----------
-
-}
-```
-
 Se quiere obtener muestras de una distribución Normal bivariada con media , para ello se aplica el algoritmo de Metropolis-Hastings y se proponen 
 
 Para testear el algoritmo de Metropolis-Hastings bivariado creado, se decide obtener muestras de una distribución Normal bivariada con vector de media $\mu^*$ y matriz de covarianza $\Sigma^*$ con el algoritmo ya mencionado.
@@ -714,12 +651,7 @@ probabilidades_nb <- tibble(
 #| tbl-cap: "Cálculo de probablidades con distintos métodos"
 
 probabilidades_nb |> 
-  tt() |> 
-  style_tt(
-    j = 1:4,
-    line = "tblr",
-    line_width = 0.1,
-    line_color = "black")
+  tt() 
 ```
 
 Podemos concluir que las estimaciones de las probabilidades calculadas son bastante acertadas, debido a su similitud con los otros métodos.
@@ -864,12 +796,7 @@ probabilidades_banana <- tibble(
 #| tbl-cap: "Cálculo de probablidades con distintos métodos"
 
 probabilidades_banana |> 
-  tt() |> 
-  style_tt(
-    j = 1:4,
-    line = "tblr",
-    line_width = 0.1,
-    line_color = "black")
+  tt() 
 ```
 
 Se puede observar que el algoritmo en esta situación falla bastante en la generación de las muestras, dado que la estimación de las probabilidades son muy diferentes a las calculadas por un método casi exacto.
