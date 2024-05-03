@@ -1,3 +1,4 @@
+
 ---
 title: "Metropolis-Hasting"
 format: 
@@ -17,7 +18,6 @@ geometry:
 header-includes:
   - \usepackage{ragged2e}
   - \usepackage{hyperref}
-
 ---
 
 
@@ -55,11 +55,17 @@ Un método sencillo de emplear y que reporta buenos resultados es el algoritmo d
 
 En esta sección se presentan los algoritmo de metrópolis Hastingspara variables aleatorias unidimensionales y bidimensionales
 
-(Agregar como funciona metropolis-hasting)
+Una vez ejecutado el algoritmo terminaremos con una muestra de tamaño n: $\{\theta^{(1)},\theta^{(2)},...,\theta^{(n)}\}$
+
+Para obtener cada muestra $\theta^{(i+1)}$ se partirá desde $\theta^{(i)}$
+    1. se propondrá un nuevo valor $\theta'$ en función de $q(\theta' \ |\theta^{(i)})$
+    2. Se calcula la probabilidad de que $\theta^{(i+1)}$ tome el valor de $\theta'$: $\alpha = min\left\{1;\frac{f(\theta')}{f(\theta)}\frac{q(\theta \ |\theta')}{q(\theta' \ |\theta)}\right\}$
+    3. 
+
 
 ::: {.callout-note}
 
-## Algoritmo Metrópolis-Hastingsunivariado
+## Algoritmo Metrópolis-Hastings univariado
 
 ```{r algoritmo mh univariado doc, echo = T}
 sample_mh <- function(n, d_objetivo, r_propuesta = NULL, d_propuesta = NULL, p_inicial = NULL){
@@ -111,7 +117,7 @@ sample_mh <- function(n, d_objetivo, r_propuesta = NULL, d_propuesta = NULL, p_i
 
 ::: {.callout-note}
 
-## Algoritmo Metrópolis-Hastingsbivariado
+## Algoritmo Metrópolis-Hastings bivariado
 
 ```{r algoritmo m-h bivariado doc, echo = T}
 sample_mh_mv <- function(n, d_objetivo, cov_propuesta = diag(2), p_inicial = numeric(2)) {
