@@ -88,7 +88,7 @@ R_hat <- function(muestra) {
 
 n_eff_calculo <- function(x) {
   
-  s <- nrow(x)
+  s <- length(x)
   
   autocorrelaciones <- acf(x, plot = F, lag.max = Inf)$acf
   limite <- which(autocorrelaciones < 0.025)[1] # Se agrega un limite para despreciar correlaciones muy chicas
