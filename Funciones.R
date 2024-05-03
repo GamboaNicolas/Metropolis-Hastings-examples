@@ -29,7 +29,7 @@ plot_trace <- function(muestra) {
 plot_autocor <- function(muestra) {
   tibble(
     rezago = 0:20,
-    autocorrelacion = acf(muestra$x,lag.max = 20,plot = F)$acf
+    autocorrelacion = acf(muestra,lag.max = 20,plot = F)$acf
   ) |> 
     ggplot(aes(x = rezago, y = autocorrelacion))+
     geom_point(size = 2)+
@@ -86,13 +86,45 @@ R_hat <- function(muestra) {
 }
 
 
-n_eff <- function(x) {
+n_eff_calculo <- function(x) {
   
-  s <- nrow(x)
+  s <- length(x)
   
   autocorrelaciones <- acf(x, plot = F, lag.max = Inf)$acf
-  limite <- which(autocorrelaciones < 0.025)[1] # Agregamos un limite para despreciar correlaciones muy chicas
+  limite <- which(autocorrelaciones < 0.025)[1] # Se agrega un limite para despreciar correlaciones muy chicas
   
   s / (1 + 2 * sum(autocorrelaciones[2:limite]))
   
 }
+
+n_eff <- function(x) {
+  
+  apply(x, 2, n_eff_calculo)
+  
+}
+
+
+
+plot_path <- function(muestra, d_objetivo, paths = 500) {
+  
+  df_grilla <- expand.grid(x = seq(min(muestra$dim_1),max(muestra$dim_1), length.out = 200),
+                           y = seq(min(muestra$dim_2),max(muestra$dim_2), length.out = 200))
+  df_grilla$z <- d_objetivo(df_grilla)
+  df_grilla <- as.matrix(df_grilla)
+  
+  
+  muestra |>
+    mutate(dim_1_next = c(dim_1[-1], dim_1[nrow(muestra)]),
+           dim_2_next = c(dim_2[-1], dim_2[nrow(muestra)])) |>
+    slice_head(n = paths) |> 
+    ggplot(aes(x = dim_1, y = dim_2)) +
+    geom_segment(aes(x = dim_1, xend= dim_1_next, y = dim_2, yend = dim_2_next, alpha = iteracion), color = "#202C59") +
+    geom_point(aes(x = dim_1, y = dim_2, alpha = iteracion), color = "#202C59") +
+    geom_point(aes(x = dim_1, y = dim_2), data = muestra[1,],color = "#F18805", size = 3, pch = 17, alpha = 1) +
+    stat_contour(aes(x = x, y = y, z = z), data = df_grilla, col = "black") +
+    labs(x = expression(x[1]),
+         y = expression(x[2]), fill = expression(p^"*" ~ "("~x[1]~", "~x[2]~" | a, b)")) + 
+    theme(legend.position = "none")
+}
+
+
