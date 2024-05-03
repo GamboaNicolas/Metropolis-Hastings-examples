@@ -29,7 +29,7 @@ plot_trace <- function(muestra) {
 plot_autocor <- function(muestra) {
   tibble(
     rezago = 0:20,
-    autocorrelacion = acf(muestra$x,lag.max = 20,plot = F)$acf
+    autocorrelacion = acf(muestra,lag.max = 20,plot = F)$acf
   ) |> 
     ggplot(aes(x = rezago, y = autocorrelacion))+
     geom_point(size = 2)+
