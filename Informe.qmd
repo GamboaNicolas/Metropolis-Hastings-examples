@@ -218,26 +218,6 @@ tibble(
   aes(x = x, y = valores,color = Parámetros)+
   geom_line(linewidth = 1.2) +
   labs(x = "X", y = expression(f ~ "("~x~" | a, b)"))
-
-# tibble(
-#   x = rep(grilla,times = 5),
-#   parametros = rep(c("a = 0.5, b = 0.5",
-#                      "a = 1, b = 2",
-#                      "a = 3, b = 4",
-#                      "a = 6, b = 2",
-#                      "a = 5, b = 1"), each = 500),
-#   valores = c(
-#     dbeta(grilla, 0.5, 0.5),
-#     dbeta(grilla, 1, 2),
-#     dbeta(grilla, 3, 4),
-#     dbeta(grilla, 6, 2),
-#     dbeta(grilla, 5,1)
-#   )
-# ) |> 
-#   ggplot()+
-#   aes(x = x, y = valores,color = parametros)+
-#   geom_line(linewidth = 1.2)
-# 
 ```
 
 Esta distribución puede ser utilizada en el ámbito de la estadística bayesiana a la hora de definir un prior para un parámetro con campo de variación en el intervalo (0, 1).
@@ -521,8 +501,6 @@ Si bien las diferencias en dispersión de las muestras no son muy perceptibles a
 
 El algoritmo de Metropolis-Hastings se aprecia más cuando se obtienen muestras de distribuciones en más de una dimensión, incluso cuando no se conoce la constante de normalización, sin embargo tiene limitaciones para cierta funciones, las cuales se verán a continuación.
 
-Se quiere obtener muestras de una distribución Normal bivariada con media , para ello se aplica el algoritmo de Metropolis-Hastings y se proponen 
-
 Para testear el algoritmo de Metropolis-Hastings bivariado creado, se decide obtener muestras de una distribución Normal bivariada con vector de media $\mu^*$ y matriz de covarianza $\Sigma^*$ con el algoritmo ya mencionado.
 
 Donde $\mu^* = \begin{bmatrix} 0.4 \\ 0.75 \end{bmatrix}$ y $\Sigma^* = \begin{bmatrix} 1.35 & 0.4 \\ 0.4 & 2.4 \end{bmatrix}$.
@@ -598,7 +576,7 @@ plot_hotmap(muestra = cadena3$muestra_mh, d_objetivo = d_obj, puntos = F)
 plot_trace(muestra = cadena3$muestra_mh)
 ```
 
-(Chamuyar acerca de la mejor matriz de covarianzas... utilizando las estadisticas de bondad de la muestra)
+(Chamuyar acerca de la mejor matriz de covarianzas... utilizando las estadisticas de bondad de la muestra (neff multivariado))
 
 \newpage
 
@@ -660,15 +638,15 @@ Podemos concluir que las estimaciones de las probabilidades calculadas son basta
 
 Es una función matemática utilizada frecuentemente como prueba de algoritmos de optimización numérica. En el campo de la Estadística Bayesiana, es muy conocida dado que la densidad del posterior toma una forma que definitivamente se asemeja a la _banana de Rosenbrock_. (Redactar??)
 
-La densidad de ésta función viene dada por: $p^*(x_1,x_2|a,b) = exp\{-[(a-x_1)^2+b(x_2-x_1^2)^2]\}$
+La densidad de ésta función viene dada por: $p^*(x_1,x_2|a,b) = exp\{-[(a-x_1)^2+b(x_2-x_1^2)^2]\}, \ a,b \in \mathbb{R}$
 
 Para poner a prueba el algoritmo de Metropolis-Hastings bivariado en situaciones complejas, se decide obtener 5000 muestras de la función anteriormente mencionada, con parámetros $a = 0.5$ y $b = 5$. Se utilizan 3 distintas matrices de covarianzas propuestas, las cuáles son:
 
-1. $\Sigma_1 = \begin{bmatrix} 0.06 & 0 \\ 0 & 0.07 \end{bmatrix}$ Se puede ver su densidad en @fig-banana1 y el recorrido de la cadena en @fig-bananatrace1. Con esta matriz la probabilidad de aceptación es (insertar valor)
+1. $\Sigma_1 = \begin{bmatrix} 0.06 & 0 \\ 0 & 0.07 \end{bmatrix}$ Se puede ver su densidad en @fig-banana1 y el recorrido de la cadena en @fig-bananatrace1. Con esta matriz la probabilidad de aceptación es `r round(cadena1$probabilidad_aceptacion, 4)`
 
-2. $\Sigma_2 = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}$ Se puede ver su densidad en @fig-banana2 y el recorrido de la cadena en @fig-bananatrace2. Con esta matriz la probabilidad de aceptación es (insertar valor)
+2. $\Sigma_2 = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}$ Se puede ver su densidad en @fig-banana2 y el recorrido de la cadena en @fig-bananatrace2. Con esta matriz la probabilidad de aceptación es `r round(cadena2$probabilidad_aceptacion, 4)`
 
-3. $\Sigma_3 = \begin{bmatrix} 0.5 & 0 \\ 0 & 0.5 \end{bmatrix}$ Se puede ver su densidad en @fig-banana3 y el recorrido de la cadena en @fig-bananatrace3. Con esta matriz la probabilidad de aceptación es (insertar valor)
+3. $\Sigma_3 = \begin{bmatrix} 0.5 & 0 \\ 0 & 0.5 \end{bmatrix}$ Se puede ver su densidad en @fig-banana3 y el recorrido de la cadena en @fig-bananatrace3. Con esta matriz la probabilidad de aceptación es `r round(cadena3$probabilidad_aceptacion, 4)`
 
 ```{r banana de rosenbrock 1}
 d_obj_p <- function(x, a = 0.5, b = 5) exp(-((a-x[1])^2 + b *(x[2]-x[1]^2)^2))
@@ -748,7 +726,7 @@ plot_hotmap(cadena_p$muestra_mh[-1], d_objetivo = d_obj_p, puntos = F)
 plot_trace(cadena_p$muestra_mh)
 ```
 
-(Hablar acerca de la probabilidad de aceptación y de con cuál se obtienen las mejores muestras).
+(Hablar acerca de con cuál se obtienen las mejores muestras).
 
 \newpage
 
@@ -782,7 +760,7 @@ pr_valor_real3 <- integral2(d_integral, xmin = 1, xmax = 2, ymin = 2, ymax = 3)$
 ```
 
 ```{r tabla para probabilidad p10 1}
-filas <- c("M-H", "Integración manual")
+filas <- c("M-H", "Integración numérica")
 
 probabilidades_banana <- tibble(
   var = filas,
@@ -806,13 +784,3 @@ Se puede observar que el algoritmo en esta situación falla bastante en la gener
 # Conclusiones
 
 (Redactar las conclusiones en un futuro no muy lejano ...)
-
-# Preguntas y propuestas
-
-Comparar las probabilidades tmb por monte carlo
-Preguntar por la probabilidad de salto en mh_multivariado
-Como es el numerador del NEFF (Se calcula con una o varias cadenas?)
-Como validar la bondad del metodo en el punto 7, que estadisticas podemos usar?, algun test?
-Punto 8, calculo de probabilidades con una sola cadena?
-Punto 9, Calculo de la probabilidad de aceptacion y funcion de autocorrelacion bivariada.
-Punto 10, se puede considerar integracion manual si lo realizamos con un paquete??
