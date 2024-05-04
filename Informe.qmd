@@ -641,7 +641,7 @@ cov_prop_p1 <- diag(c(0.06, 0.07))
 cadena_p1 <- sample_mh_mv(n = 5000, d_objetivo = d_obj_p, cov_propuesta = cov_prop_p1, p_inicial = c(0,0))
 ```
 
-1. $\Sigma_1 = \begin{bmatrix} 0.06 & 0 \\ 0 & 0.07 \end{bmatrix}$ Se puede ver su densidad en @fig-banana1, el recorrido de la cadena en @fig-bananatrace1 y la autocorrelación en fig-banana-autocor1. Con esta matriz la probabilidad de aceptación es `r round(cadena_p1$probabilidad_aceptacion, 4)`.
+1. $\Sigma_1 = \begin{bmatrix} 0.06 & 0 \\ 0 & 0.07 \end{bmatrix}$ Se puede ver su densidad en @fig-banana1, el recorrido de la cadena en @fig-bananatrace1 y la autocorrelación en @fig-bananacor1. Con esta matriz la probabilidad de aceptación es `r round(cadena_p1$probabilidad_aceptacion, 4)`.
 
 ```{r banana de rosenbrock 2}
 cov_prop_p2 <- diag(c(1, 1))
@@ -649,7 +649,7 @@ cov_prop_p2 <- diag(c(1, 1))
 cadena_p2 <- sample_mh_mv(n = 5000, d_objetivo = d_obj_p, cov_propuesta = cov_prop_p2, p_inicial = c(0,0))
 ```
 
-2. $\Sigma_2 = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}$ Se puede ver su densidad en @fig-banana2, el recorrido de la cadena en @fig-bananatrace2 y la autocorrelación en fig-banana-autocor2. Con esta matriz la probabilidad de aceptación es `r round(cadena_p2$probabilidad_aceptacion, 4)`.
+2. $\Sigma_2 = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}$ Se puede ver su densidad en @fig-banana2, el recorrido de la cadena en @fig-bananatrace2 y la autocorrelación en @fig-bananacor2. Con esta matriz la probabilidad de aceptación es `r round(cadena_p2$probabilidad_aceptacion, 4)`.
 
 ```{r banana de rosenbrock 3}
 cov_prop_p3 <- diag(c(0.5, 0.5))
@@ -657,7 +657,7 @@ cov_prop_p3 <- diag(c(0.5, 0.5))
 cadena_p3 <- sample_mh_mv(n = 5000, d_objetivo = d_obj_p, cov_propuesta = cov_prop_p3, p_inicial = c(0,0))
 ```
 
-3. $\Sigma_3 = \begin{bmatrix} 0.5 & 0 \\ 0 & 0.5 \end{bmatrix}$ Se puede ver su densidad en @fig-banana3, el recorrido de la cadena en @fig-bananatrace3 y la autocorrelación en fig-banana-autocor3. Con esta matriz la probabilidad de aceptación es `r round(cadena_p3$probabilidad_aceptacion, 4)`.
+3. $\Sigma_3 = \begin{bmatrix} 0.5 & 0 \\ 0 & 0.5 \end{bmatrix}$ Se puede ver su densidad en @fig-banana3, el recorrido de la cadena en @fig-bananatrace3 y la autocorrelación en @fig-bananacor3. Con esta matriz la probabilidad de aceptación es `r round(cadena_p3$probabilidad_aceptacion, 4)`.
 
 
 ```{r hotmap de rosenbrock 1}
@@ -676,7 +676,7 @@ plot_trace(cadena_p1$muestra_mh)
 
 ```{r autocorrelacion banana de rosenbrock 1}
 #| fig-cap: "Autocorrelación de las muestras obtenidas por Metropolis-Hastings de $p^*$ con $\\Sigma_1$ como propuesta"
-#| label: fig-banana-autocor1
+#| label: fig-bananacor1
 
 plot_autocor(cadena_p1$muestra_mh)
 ```
@@ -697,7 +697,7 @@ plot_trace(cadena_p2$muestra_mh)
 
 ```{r autocorrelacion banana de rosenbrock 2}
 #| fig-cap: "Autocorrelación de las muestras obtenidas por Metropolis-Hastings de $p^*$ con $\\Sigma_1$ como propuesta"
-#| label: fig-banana-autocor2
+#| label: fig-bananacor2
 
 plot_autocor(cadena_p2$muestra_mh)
 ```
@@ -718,7 +718,7 @@ plot_trace(cadena_p3$muestra_mh)
 
 ```{r autocorrelacion banana de rosenbrock 3}
 #| fig-cap: "Autocorrelación de las muestras obtenidas por Metropolis-Hastings de $p^*$ con $\\Sigma_1$ como propuesta"
-#| label: fig-banana-autocor3
+#| label: fig-bananacor3
 
 plot_autocor(cadena_p3$muestra_mh)
 ```
@@ -748,8 +748,6 @@ Considerando en los tamaños de las muestras efectivas en cada dimensión y en l
 
 \newpage
 
-Para ver la bondad de la muestra generada por Metropolis-Hastings, se calculan ciertas probabilidades y luego se comparan con otros métodos de cálculo de probabilidades, como "Función de distribución" y "Método de MonteCarlo".
-
 Para ver que tan bien funciona Metropolis-Hastings en esta situación compleja, interesa calcular ciertas probabilidades y compararlas con el método de "Integración Manual".
 
 ```{r probabilidades p10 1}
@@ -778,21 +776,26 @@ pr_valor_real3 <- integral2(d_integral, xmin = 1, xmax = 2, ymin = 2, ymax = 3)$
 ```
 
 ```{r tabla para probabilidad p10 1}
-filas <- c("M-H", "Integración \\ numérica")
+filas <- c("M-H", "Integración \\newline numérica")
 
 probabilidades_banana <- tibble(
   var = filas,
   p1 = c(pr_banana1, pr_valor_real1),
   p2 = c(pr_banana2, pr_valor_real2),
   p3 = c(pr_banana3, pr_valor_real3)
-) |> `colnames<-`(c("Método","$P(0 < X_1 < 1, 0 < X_2 < 1)$", "$P(-1 < X_1 < 0, 0 < X_2 < 1)$", "$P(1 < X_1 < 2, 2 < X_2 < 3)$"))
+) |> `colnames<-`(c("Método","$P(A, B)$", "$P(C, D)$", "$P(E, F)$"))
 ```
 
 ```{r tabla probabilidades banana 1}
 #| tbl-cap: "Cálculo de probablidades con distintos métodos"
 
 probabilidades_banana |> 
-  tt() 
+  tt(notes = list(
+    "1" = list(i = 0, j = 2, text = "$A = 0 < X_1 < 1, B = 0 < X_2 < 1$"),
+    "2" = list(i = 0, j = 3, text = "$C = -1 < X_1 < 0, D = 0 < X_2 < 1$"),
+    "3" = list(i = 0, j = 4, text = "$E = 1 < X_1 < 2, F = 2 < X_2 < 3$")
+  ))
+  
 ```
 
 Se puede observar que el algoritmo en esta situación falla bastante en la generación de las muestras, dado que la estimación de las probabilidades son muy diferentes a las calculadas por un método casi exacto.
