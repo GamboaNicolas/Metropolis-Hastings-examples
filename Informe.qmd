@@ -1,14 +1,13 @@
-
 ---
 title: "Metropolis-Hasting"
 format: 
   pdf:
     fig-pos: "H"
+    tbl-cap-location: bottom
 lang: es
 echo: FALSE
 message: FALSE
 warning: FALSE
-tbl-cap-location: bottom
 geometry:
   - top= 25mm
   - left= 20mm
@@ -18,6 +17,8 @@ geometry:
 header-includes:
   - \usepackage{ragged2e}
   - \usepackage{hyperref}
+  - \usepackage{float}
+  - \floatplacement{table}{H}
 ---
 
 
@@ -68,7 +69,8 @@ Para obtener cada muestra $\theta^{(i+1)}$ se partirá desde $\theta^{(i)}$
 ## Algoritmo Metrópolis-Hastings univariado
 
 ```{r algoritmo mh univariado doc, echo = T}
-sample_mh <- function(n, d_objetivo, r_propuesta = NULL, d_propuesta = NULL, p_inicial = NULL){
+sample_mh <- function(n, d_objetivo, r_propuesta = NULL, d_propuesta = NULL,
+                      p_inicial = NULL){
 
   if (is.null(r_propuesta) | is.null(d_propuesta)) {
     r_propuesta <- function(media) rnorm(n = 1, media, sd = 1)
@@ -186,7 +188,7 @@ sample_mh_mv <- function(n, d_objetivo, cov_propuesta = diag(2), p_inicial = num
 
 ## Distribución de Kumaraswamy
 
-La distribución de Kumaraswamy es una distribución de probabilidad continua que se utiliza para modelar variables aleatorias con soporte en el intervalo $(0,1)$, cuya función de densidad es: $f(x|a,b) = abx^{a-1}(1-x^a)^{b-1}, \ con \ a,b>0$
+La distribución de Kumaraswamy es una distribución de probabilidad continua que se utiliza para modelar variables aleatorias con soporte en el intervalo $(0,1)$, cuya función de densidad es: \newline $f(x|a,b) = abx^{a-1}(1-x^a)^{b-1}, \ con \ a,b>0$
 
 ```{r distribucion de kumaraswamy}
 #| fig-cap: "Función de densidad de la distribución de Kumaraswamy"
@@ -235,78 +237,6 @@ La distribución de Kumaraswamy se comporta de manera muy similar a la beta, sin
 ## Metropolis-Hastingsen una dimensión
 
 A continuación utilizaremos el algoritmo de Metropolis-Hastingspara generar 5000 muestras de la distribución de _Kumaraswamy_ con parámetros $a = 6$ y $b = 2$, utilizando como distribución propuesta una $Beta(\mu, \kappa)$, donde $\mu$ representa la media de la distribución y $\kappa$ el grado de la concentración de la distribución. Esto lo haremos para 3 valores distintos de $\kappa$.
-
-```{r Algoritmo M-H univariado}
-# sample_mh <- function(n,
-#                       d_objetivo,
-#                       r_propuesta = NULL,
-#                       d_propuesta = NULL,
-#                       p_inicial = NULL){
-# 
-#   if (is.null(r_propuesta) | is.null(d_propuesta)) {
-#     r_propuesta <- function(media) rnorm(n = 1, media, sd = 1)
-#     d_propuesta <- function(x, media) dnorm(x = x,media, sd = 1)
-#   }
-# 
-#   stopifnot(n > 0)
-#   contador <- 0
-#   muestras <- numeric(n)
-# 
-#   # if (is.null(p_inicial)) {
-#   #   for(i in 1:1000){
-#   #     p_inicial <- runif(1,-100,100)
-#   #     if (d_objetivo(p_inicial) != 0) {
-#   #       break
-#   #     }
-#   #   }
-#   #   if(i == 1000) stop("Se recomienda introducir un valor para ´p_inicial´")
-#   # }
-# 
-#   muestras[1] <- p_inicial
-# 
-#   for(i in 2:n) {
-# 
-#     p_actual <- muestras[i-1]
-#     p_propuesta <- r_propuesta(p_actual)
-# 
-#     q_actual <- d_propuesta(p_actual, p_propuesta)
-#     q_nuevo <- d_propuesta(p_propuesta, p_actual)
-# 
-#     f_actual <- d_objetivo(p_actual)
-#     f_nuevo <- d_objetivo(p_propuesta)
-# 
-#     if (f_actual == 0 || q_nuevo == 0) {
-#       alfa <- 1
-#     } else {
-# 
-#       alfa <- min(1, (f_nuevo/f_actual)*(q_actual/q_nuevo))
-#     }
-# 
-# 
-#     muestras[i] <- sample(c(p_propuesta, p_actual),
-#     size = 1, prob = c(alfa, 1-alfa))
-# 
-#     if(muestras[i] != muestras[i-1]) {
-#       contador <- contador + 1
-#     }
-#   }
-#   return(list(cadena = data.frame(iteracion = 1:n, x = muestras),
-#        tasa_aceptacion = contador / n))
-# }
-# 
-# 
-# # d_obj <- function(x){
-# #   # dnorm(x = x,mean = 90,sd = 8)
-# #   return(dbeta(x = x,2,2))
-# # }
-# # d_obj(-50)
-# # muestra <- sample_mh(100000, d_objetivo = d_obj)
-# #
-# # muestra |>
-# #   ggplot()+
-# #   aes(x = x)+
-# #   geom_histogram()
-```
 
 ```{r comparacion de las cadenas}
 source("Funciones.R")
@@ -393,7 +323,9 @@ nro_ef_muestras <- tibble(
 
 
 ```{r tabla nro efectivo de muestra 2}
-#| tbl-cap: "Numero efectivo de muestras para cadenas de 5000 muestras y distintos valores de $\\kappa$"
+#| tbl-cap: "Número efectivo de muestras para cadenas de 5000 muestras y distintos valores de $\\kappa$"
+#| tbl-pos: H
+#| tbl-cap-location: bottom
 
 nro_ef_muestras |> 
   tt() 
@@ -470,6 +402,8 @@ valores <- tibble(
 
 ```{r tablita fachera 2}
 #| tbl-cap: "Media y quantiles estimadas para las funciones $X$ y $Logit(X)$"
+#| tbl-pos: H
+#| tbl-cap-location: bottom
 
 valores |> 
   tt() |> 
@@ -494,6 +428,8 @@ valores_reales <- tibble(
 
 ```{r valores reales kuma 2}
 #| tbl-cap: "Media y quantiles para las funciones $X$ y $Logit(X)$"
+#| tbl-pos: H
+#| tbl-cap-location: bottom
 
 valores_reales |> 
   tt()
@@ -513,11 +449,11 @@ Donde $\mu^* = \begin{bmatrix} 0.4 \\ 0.75 \end{bmatrix}$ y $\Sigma^* = \begin{b
 
 Se plantean 3 matrices de covarianzas distintas como propuestas para observar con cual de estas se obtienen muestras mas aproximadas a la verdadera distribución:
 
-1. $\Sigma_1 = \begin{bmatrix} 1 & 0 \\ 0 & 2 \end{bmatrix}$ Se puede ver en @fig-cov1 y @fig-trace-cov1
+1. $\Sigma_1 = \begin{bmatrix} 1 & 0 \\ 0 & 2 \end{bmatrix}$ Se puede ver en @fig-cov1, @fig-trace-cov1 y @fig-autocor1
 
-2. $\Sigma_2 = \begin{bmatrix} 0.25 & 0 \\ 0 & 0.25 \end{bmatrix}$ Se puede ver en @fig-cov2 y @fig-trace-cov2
+2. $\Sigma_2 = \begin{bmatrix} 0.25 & 0 \\ 0 & 0.25 \end{bmatrix}$ Se puede ver en @fig-cov2, @fig-trace-cov2 y @fig-autocor2
 
-3. $\Sigma_3 = \begin{bmatrix} 1 & 0.3 \\ 0.3 & 1 \end{bmatrix}$ Se puede ver en @fig-cov3 y @fig-trace-cov3
+3. $\Sigma_3 = \begin{bmatrix} 1 & 0.3 \\ 0.3 & 1 \end{bmatrix}$ Se puede ver en @fig-cov3, @fig-trace-cov3 y @fig-autocor3
 
 ```{r}
 mu <- c(.4,.75) 
@@ -548,7 +484,14 @@ plot_hotmap(muestra = cadena1$muestra_mh, d_objetivo = d_obj, puntos = F)
 #| label: fig-trace-cov1
 
 plot_trace(muestra = cadena1$muestra_mh)
+```
 
+
+```{r autocorrelacion normal bivariada 1}
+#| fig-cap: "Autocorrelación de las muestras obtenidas por Metropolis-Hastings de una $\\mathcal{N}_2(\\mu^*, \ \\Sigma^*)$ con $\\Sigma_1$ como propuesta"
+#| label: fig-autocor1
+
+plot_autocor(cadena1$muestra_mh)
 ```
 
 ```{r distribucion normal bivariada 2}
@@ -564,6 +507,13 @@ plot_hotmap(muestra = cadena2$muestra_mh, d_objetivo = d_obj, puntos = F)
 #| label: fig-trace-cov2
 
 plot_trace(muestra = cadena2$muestra_mh)
+```
+
+```{r autocorrelacion normal bivariada 2}
+#| fig-cap: "Autocorrelación de las muestras obtenidas por Metropolis-Hastings de una $\\mathcal{N}_2(\\mu^*, \ \\Sigma^*)$ con $\\Sigma_2$ como propuesta"
+#| label: fig-autocor2
+
+plot_autocor(cadena2$muestra_mh)
 ```
 
 
@@ -582,7 +532,38 @@ plot_hotmap(muestra = cadena3$muestra_mh, d_objetivo = d_obj, puntos = F)
 plot_trace(muestra = cadena3$muestra_mh)
 ```
 
-(Chamuyar acerca de la mejor matriz de covarianzas... utilizando las estadisticas de bondad de la muestra (neff multivariado))
+```{r autocorrelacion normal bivariada 3}
+#| fig-cap: "Autocorrelación de las muestras obtenidas por Metropolis-Hastings de una $\\mathcal{N}_2(\\mu^*, \ \\Sigma^*)$ con $\\Sigma_1$ como propuesta"
+#| label: fig-autocor3
+
+plot_autocor(cadena3$muestra_mh)
+```
+
+```{r tabla numero efectivo de muestras normal bivariada 1}
+cadena_muestra <- c("Cadena 1", "Cadena 2", "Cadena 3")
+neff_1 <- n_eff(cadena1$muestra_mh[,-1])
+neff_2 <- n_eff(cadena2$muestra_mh[,-1])
+neff_3 <- n_eff(cadena3$muestra_mh[,-1])
+
+
+neff_tabla <- tibble(
+  var = cadena_muestra,
+  dim_1 = c(floor(neff_1[1]), floor(neff_2[1]), floor(neff_3[1])),
+  dim_2 = c(floor(neff_1[2]), floor(neff_2[2]), floor(neff_3[2]))
+) |> `colnames<-`(c("Cadena","$x_1$", "$x_2$"))
+
+
+```
+
+```{r tabla numero efectivo de muestras normal bivariada 2}
+#| tbl-cap: "Número efectivo de muestras para cadenas de 5000 muestras y distintos valores de $\\Sigma$"
+#| tbl-pos: H
+
+neff_tabla |> 
+  tt()
+```
+
+Considerando los tamaños de muestras efectivos en cada dimensión y los gráficos de autocorrelación observados, se puede concluir que con la matriz de covarianzas $\Sigma_1$ se obtienen muestras aparentemente mejores de la distribución objetivo.
 
 \newpage
 
@@ -642,97 +623,128 @@ Podemos concluir que las estimaciones de las probabilidades calculadas son basta
 
 ## Función de Rosenbrock
 
-Es una función matemática utilizada frecuentemente como prueba de algoritmos de optimización numérica. En el campo de la Estadística Bayesiana, es muy conocida dado que la densidad del posterior toma una forma que definitivamente se asemeja a la _banana de Rosenbrock_. (Redactar??)
+Es una función matemática, popularmente conocida como *La banana de Rosenbrock* utilizada frecuentemente como prueba de algoritmos de optimización numérica.
 
-La densidad de ésta función viene dada por: $p^*(x_1,x_2|a,b) = exp\{-[(a-x_1)^2+b(x_2-x_1^2)^2]\}, \ a,b \in \mathbb{R}$
+$$f(x,y) = (a-x)^2+b(y-x^2)^2$$
+
+En el campo de la Estadística Bayesiana, es muy conocida dado que la densidad del posterior muchas veces toma una forma que se asemeja a la función de *Rosenbrock*.
+
+Un ejemplo de este fenómeno es la función de densidad que viene dada por: \newline $p^*(x_1,x_2|a,b) = exp\{-[(a-x_1)^2+b(x_2-x_1^2)^2]\}, \ a,b \in \mathbb{R}$
 
 Para poner a prueba el algoritmo de Metropolis-Hastings bivariado en situaciones complejas, se decide obtener 5000 muestras de la función anteriormente mencionada, con parámetros $a = 0.5$ y $b = 5$. Se utilizan 3 distintas matrices de covarianzas propuestas, las cuáles son:
-
-1. $\Sigma_1 = \begin{bmatrix} 0.06 & 0 \\ 0 & 0.07 \end{bmatrix}$ Se puede ver su densidad en @fig-banana1 y el recorrido de la cadena en @fig-bananatrace1. Con esta matriz la probabilidad de aceptación es `r round(cadena1$probabilidad_aceptacion, 4)`
-
-2. $\Sigma_2 = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}$ Se puede ver su densidad en @fig-banana2 y el recorrido de la cadena en @fig-bananatrace2. Con esta matriz la probabilidad de aceptación es `r round(cadena2$probabilidad_aceptacion, 4)`
-
-3. $\Sigma_3 = \begin{bmatrix} 0.5 & 0 \\ 0 & 0.5 \end{bmatrix}$ Se puede ver su densidad en @fig-banana3 y el recorrido de la cadena en @fig-bananatrace3. Con esta matriz la probabilidad de aceptación es `r round(cadena3$probabilidad_aceptacion, 4)`
 
 ```{r banana de rosenbrock 1}
 d_obj_p <- function(x, a = 0.5, b = 5) exp(-((a-x[1])^2 + b *(x[2]-x[1]^2)^2))
 
-cov_prop_p <- diag(c(0.06, 0.07))
+cov_prop_p1 <- diag(c(0.06, 0.07))
 
-cadena_p <- sample_mh_mv(n = 5000, d_objetivo = d_obj_p, cov_propuesta = cov_prop_p, p_inicial = c(0,0))
-
-# cadena_p$probabilidad_aceptacion
-# 
-# acf(cadena_p$muestra_mh[-1], plot = F) # Decorar
+cadena_p1 <- sample_mh_mv(n = 5000, d_objetivo = d_obj_p, cov_propuesta = cov_prop_p1, p_inicial = c(0,0))
 ```
+
+1. $\Sigma_1 = \begin{bmatrix} 0.06 & 0 \\ 0 & 0.07 \end{bmatrix}$ Se puede ver su densidad en @fig-banana1, el recorrido de la cadena en @fig-bananatrace1 y la autocorrelación en fig-banana-autocor1. Con esta matriz la probabilidad de aceptación es `r round(cadena_p1$probabilidad_aceptacion, 4)`.
+
+```{r banana de rosenbrock 2}
+cov_prop_p2 <- diag(c(1, 1))
+
+cadena_p2 <- sample_mh_mv(n = 5000, d_objetivo = d_obj_p, cov_propuesta = cov_prop_p2, p_inicial = c(0,0))
+```
+
+2. $\Sigma_2 = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}$ Se puede ver su densidad en @fig-banana2, el recorrido de la cadena en @fig-bananatrace2 y la autocorrelación en fig-banana-autocor2. Con esta matriz la probabilidad de aceptación es `r round(cadena_p2$probabilidad_aceptacion, 4)`.
+
+```{r banana de rosenbrock 3}
+cov_prop_p3 <- diag(c(0.5, 0.5))
+
+cadena_p3 <- sample_mh_mv(n = 5000, d_objetivo = d_obj_p, cov_propuesta = cov_prop_p3, p_inicial = c(0,0))
+```
+
+3. $\Sigma_3 = \begin{bmatrix} 0.5 & 0 \\ 0 & 0.5 \end{bmatrix}$ Se puede ver su densidad en @fig-banana3, el recorrido de la cadena en @fig-bananatrace3 y la autocorrelación en fig-banana-autocor3. Con esta matriz la probabilidad de aceptación es `r round(cadena_p3$probabilidad_aceptacion, 4)`.
 
 
 ```{r hotmap de rosenbrock 1}
 #| fig-cap: "Distribución de las muestras obtenidas por Metropolis-Hastings de $p^*$ con $\\Sigma_1$ como propuesta"
 #| label: fig-banana1
 
-plot_hotmap(cadena_p$muestra_mh[-1], d_objetivo = d_obj_p, puntos = F)
+plot_hotmap(cadena_p1$muestra_mh[-1], d_objetivo = d_obj_p, puntos = F)
 ```
 
 ```{r traceplot banana de rosenbrock 1}
 #| fig-cap: "Cadena de Markov de las muestras obtenidas por Metropolis-Hastings de $p^*$ con $\\Sigma_1$ como propuesta"
 #| label: fig-bananatrace1
 
-plot_trace(cadena_p$muestra_mh)
+plot_trace(cadena_p1$muestra_mh)
 ```
 
+```{r autocorrelacion banana de rosenbrock 1}
+#| fig-cap: "Autocorrelación de las muestras obtenidas por Metropolis-Hastings de $p^*$ con $\\Sigma_1$ como propuesta"
+#| label: fig-banana-autocor1
 
-
-```{r banana de rosenbrock 2}
-cov_prop_p <- diag(c(1, 1))
-
-cadena_p <- sample_mh_mv(n = 5000, d_objetivo = d_obj_p, cov_propuesta = cov_prop_p, p_inicial = c(0,0))
-
-# cadena_p$probabilidad_aceptacion
-# 
-# acf(cadena_p$muestra_mh[-1], plot = F) # Decorar
+plot_autocor(cadena_p1$muestra_mh)
 ```
 
 ```{r hotmap de rosenbrock 2}
 #| fig-cap: "Distribución de las muestras obtenidas por Metropolis-Hastings de $p^*$ con $\\Sigma_2$ como propuesta"
 #| label: fig-banana2
 
-plot_hotmap(cadena_p$muestra_mh[-1], d_objetivo = d_obj_p, puntos = F)
+plot_hotmap(cadena_p2$muestra_mh[-1], d_objetivo = d_obj_p, puntos = F)
 ```
 
 ```{r traceplot banana de rosenbrock 2}
 #| fig-cap: "Cadena de Markov de las muestras obtenidas por Metropolis-Hastings de $p^*$ con $\\Sigma_2$ como propuesta"
 #| label: fig-bananatrace2
 
-plot_trace(cadena_p$muestra_mh)
+plot_trace(cadena_p2$muestra_mh)
 ```
 
-```{r banana de rosenbrock 3}
-cov_prop_p <- diag(c(0.5, 0.5))
+```{r autocorrelacion banana de rosenbrock 2}
+#| fig-cap: "Autocorrelación de las muestras obtenidas por Metropolis-Hastings de $p^*$ con $\\Sigma_1$ como propuesta"
+#| label: fig-banana-autocor2
 
-cadena_p <- sample_mh_mv(n = 5000, d_objetivo = d_obj_p, cov_propuesta = cov_prop_p, p_inicial = c(0,0))
-
-# cadena_p$probabilidad_aceptacion
-# 
-# 
-# acf(cadena_p$muestra_mh[-1], plot = F) # Decorar
+plot_autocor(cadena_p2$muestra_mh)
 ```
 
 ```{r banana de rosenbrock 3}
 #| fig-cap: "Distribución de las muestras obtenidas por Metropolis-Hastings de $p^*$ con $\\Sigma_3$ como propuesta"
 #| label: fig-banana3
 
-plot_hotmap(cadena_p$muestra_mh[-1], d_objetivo = d_obj_p, puntos = F)
+plot_hotmap(cadena_p3$muestra_mh[-1], d_objetivo = d_obj_p, puntos = F)
 ```
 
 ```{r banana de rosenbrock 3}
 #| fig-cap: "Cadena de Markov de las muestras obtenidas por Metropolis-Hastings de $p^*$ con $\\Sigma_3$ como propuesta"
 #| label: fig-bananatrace3
 
-plot_trace(cadena_p$muestra_mh)
+plot_trace(cadena_p3$muestra_mh)
 ```
 
-(Hablar acerca de con cuál se obtienen las mejores muestras).
+```{r autocorrelacion banana de rosenbrock 3}
+#| fig-cap: "Autocorrelación de las muestras obtenidas por Metropolis-Hastings de $p^*$ con $\\Sigma_1$ como propuesta"
+#| label: fig-banana-autocor3
+
+plot_autocor(cadena_p3$muestra_mh)
+```
+
+```{r tabla numero efectivo de muestras rosenbrock 1}
+cadena_muestra_ros <- c("Cadena 1", "Cadena 2", "Cadena 3")
+neff_1_ros <- n_eff(cadena_p1$muestra_mh[,-1])
+neff_2_ros <- n_eff(cadena_p2$muestra_mh[,-1])
+neff_3_ros <- n_eff(cadena_p3$muestra_mh[,-1])
+
+neff_tabla_ros <- tibble(
+  var = cadena_muestra_ros,
+  dim_1 = c(floor(neff_1_ros[1]), floor(neff_2_ros[1]), floor(neff_3_ros[1])),
+  dim_2 = c(floor(neff_1_ros[2]), floor(neff_2_ros[2]), floor(neff_3_ros[2]))
+) |> `colnames<-`(c("Cadena","$x_1$", "$x_2$"))
+```
+
+```{r tabla numero efectivo de muestras rosenbrock 2}
+#| tbl-cap: "Número efectivo de muestras para cadenas de 5000 muestras y distintos valores de $\\Sigma$"
+#| tbl-pos: H
+
+neff_tabla_ros |> 
+  tt()
+```
+
+Considerando en los tamaños de las muestras efectivas en cada dimensión y en los gráficos de autocorrelación observados, parece que la matriz de covarianzas $\Sigma_2$ genera muestras que ajustan mejor a la distribución objetivo.
 
 \newpage
 
@@ -742,16 +754,16 @@ Para ver que tan bien funciona Metropolis-Hastings en esta situación compleja, 
 
 ```{r probabilidades p10 1}
 # i
-pr_banana1 <- mean((cadena_p$muestra_mh$dim_1 > 0 & cadena_p$muestra_mh$dim_1 < 1) & 
-       (cadena_p$muestra_mh$dim_2 > 0 & cadena_p$muestra_mh$dim_2 < 1)) |> round(4)
+pr_banana1 <- mean((cadena_p2$muestra_mh$dim_1 > 0 & cadena_p2$muestra_mh$dim_1 < 1) & 
+       (cadena_p2$muestra_mh$dim_2 > 0 & cadena_p2$muestra_mh$dim_2 < 1)) |> round(4)
 
 # ii
-pr_banana2 <- mean((cadena_p$muestra_mh$dim_1 > -1 & cadena_p$muestra_mh$dim_1 < 0) & 
-       (cadena_p$muestra_mh$dim_2 > 0 & cadena_p$muestra_mh$dim_2 < 1)) |> round(4)
+pr_banana2 <- mean((cadena_p2$muestra_mh$dim_1 > -1 & cadena_p2$muestra_mh$dim_1 < 0) & 
+       (cadena_p2$muestra_mh$dim_2 > 0 & cadena_p2$muestra_mh$dim_2 < 1)) |> round(4)
 
 # iii
-pr_banana3 <- mean((cadena_p$muestra_mh$dim_1 > 1 & cadena_p$muestra_mh$dim_1 < 2) & 
-       (cadena_p$muestra_mh$dim_2 > 2 & cadena_p$muestra_mh$dim_2 < 3)) |> round(4)
+pr_banana3 <- mean((cadena_p2$muestra_mh$dim_1 > 1 & cadena_p2$muestra_mh$dim_1 < 2) & 
+       (cadena_p2$muestra_mh$dim_2 > 2 & cadena_p2$muestra_mh$dim_2 < 3)) |> round(4)
 ```
 
 ```{r probabilidades p10 2}
@@ -766,7 +778,7 @@ pr_valor_real3 <- integral2(d_integral, xmin = 1, xmax = 2, ymin = 2, ymax = 3)$
 ```
 
 ```{r tabla para probabilidad p10 1}
-filas <- c("M-H", "Integración numérica")
+filas <- c("M-H", "Integración \\ numérica")
 
 probabilidades_banana <- tibble(
   var = filas,

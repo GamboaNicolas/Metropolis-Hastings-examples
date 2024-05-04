@@ -40,7 +40,7 @@ plot_autocor <- function(muestra) {
       geom_col(width = 0.07)+
       geom_line(linewidth = 1, color = "blue")+
       geom_hline(yintercept = 0, linewidth = 0.9) +
-      labs(x = "Rezago", y = "Autocorrelación")
+      labs(x = "Rezago", y = "Autocorrelación", subtitle = expression(x[1]))
     
     segundo <- tibble(
       rezago = 0:20,
@@ -51,7 +51,7 @@ plot_autocor <- function(muestra) {
       geom_col(width = 0.07)+
       geom_line(linewidth = 1, color = "blue")+
       geom_hline(yintercept = 0, linewidth = 0.9) +
-      labs(x = "Rezago", y = "Autocorrelación")
+      labs(x = "Rezago", y = "Autocorrelación", subtitle = expression(x[2]))
     
     primero/segundo
     
