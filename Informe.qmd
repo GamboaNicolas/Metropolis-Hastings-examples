@@ -42,9 +42,9 @@ theme_set(theme_bw())
 
 # Introducción
 
-Uno de los grandes problemas que existen en el mundo de la estadística es que hay distribuciones cuyas funciones de densidad son tan complejas que resultan difíciles de trabajar. Es por esto que muchas veces resulta de utilidad trabajar con muestras aleatorias, y a partir de estas responder determinadas preguntas. En la práctica, es común encontrarse con variables aleatorias con funciones de densidad cuyo muestreo directo no es simple.
+Uno de los grandes problemas en el mundo de la estadística es la existencia de distribuciones cuyas funciones de densidad son tan complejas que resultan difíciles de trabajar. Es por esto que muchas veces resulta de utilidad trabajar con muestras aleatorias, y a partir de estas responder determinadas preguntas. En la práctica, es común encontrarse con variables aleatorias con funciones de densidad cuyo muestreo directo no es simple.
 
-Para estos casos existen distintas técnicas que nos permiten obtener muestras que, si bien no son tomadas de manera realmente independiente, se comportan de manera muy similar a como lo haría una muestra aleatoria independiente tomada de la función de densidad. 
+Para estos casos existen distintas técnicas que permiten obtener muestras que, si bien no son tomadas de manera realmente independiente, se comportan de manera muy similar a como lo haría una muestra aleatoria independiente tomada de la función de densidad. 
 
 Particularmente en el campo de la _Estadística Bayesiana_, esto resulta útil ya que permite obtener muestras de la distribución a posteriori, la cual se puede utilizar por ejemplo para obtener un intervalo de credibilidad del parámetro bajo estudio.
 
@@ -54,15 +54,58 @@ Un método sencillo de emplear y que reporta buenos resultados es el algoritmo d
 
 # Metodología
 
-En esta sección se presentan los algoritmo de metrópolis Hastingspara variables aleatorias unidimensionales y bidimensionales
+Si se quiere obtener una muestra de la función de densidad $f(x)$ ,de la cual no es sencillo obtener muestras, el algoritmo de Metropolis-Hastings plantea que proponiendo una función $q(x)$ conocida, de la cual es sencillo muestrear, y un punto inicial ($\theta$) es posible obtener muestras de la función $f(x)$. 
 
-Una vez ejecutado el algoritmo terminaremos con una muestra de tamaño n: $\{\theta^{(1)},\theta^{(2)},...,\theta^{(n)}\}$
+El método funciona de la siguiente forma:
 
-Para obtener cada muestra $\theta^{(i+1)}$ se partirá desde $\theta^{(i)}$
-    1. se propondrá un nuevo valor $\theta'$ en función de $q(\theta' \ |\theta^{(i)})$
-    2. Se calcula la probabilidad de que $\theta^{(i+1)}$ tome el valor de $\theta'$: $\alpha = min\left\{1;\frac{f(\theta')}{f(\theta)}\frac{q(\theta \ |\theta')}{q(\theta' \ |\theta)}\right\}$
-    3. 
+- De la distribución $q(x)$ centrada en $\theta$ muestrear un nuevo punto ($\theta'$)
 
+- Si la densidad de la función $f(x)$ es mayor en $\theta'$ que en $\theta$, entonces $\theta'$ formará parte de la muestra, en caso contrario será parte de la muestra con probabilidad $\frac{f(\theta')}{f(\theta)}\frac{q(\theta \ |\theta')}{q(\theta' \ |\theta)}$ o con probabilidad $1-\frac{f(\theta')}{f(\theta)}\frac{q(\theta \ |\theta')}{q(\theta' \ |\theta)}$ se repetirá $\theta$ en la muestra.
+
+- Repetir el proceso, obteniendo nuevos puntos propuestos a partir de $q(x)$ centrada en el último valor muestreado.
+
+En definitiva, la probabilidad de seleccionar $\theta'$ como nuevo valor de la muestra es $\alpha = min\left\{1;\frac{f(\theta')}{f(\theta)}\frac{q(\theta \ |\theta')}{q(\theta' \ |\theta)}\right\}$
+
+```{r}
+#| fig-cap: "Ejemplificación de la obtención de una muestra por el método de Metropolis-Hastings"
+
+x <- seq(-4,4,0.01)
+f <- exp(0.4*(x-0.4)^2-0.08*x^4)
+
+ggplot(tibble(x,f)) +
+  geom_line(aes(x=x,y=f),linewidth=1,col="#1982C4") +
+  geom_ribbon(aes(x=x,ymin=0,ymax=f),alpha=0.6,fill="#1982C4") +
+  xlab(expression(theta)) +
+  theme(axis.title.y = element_blank()) +
+  geom_line(data=tibble(x=seq(-4,2,0.01),y=dnorm(x,-1,0.8)),
+            aes(x=x,y=y), col="#AAFAC8") +
+  geom_ribbon(data=tibble(x=seq(-4,2,0.01),y=dnorm(x,-1,0.8)),
+              aes(x=x,ymin=0,ymax=y), fill="#AAFAC8",alpha=0.6) +
+  geom_point(aes(x=-1,y=0),shape="square",size=2.5) + 
+  geom_point(aes(x=0.4,y=0),shape=17,size=2.5) +
+  geom_curve(aes(x=-1,xend=0.35,y=0.1,yend=0.1),
+             curvature = -0.5,
+             arrow = arrow(length = unit(0.02, "npc"),type="closed"),
+             col="black") + 
+  geom_label(aes(x=-2.6, y=2),
+             label=expression(f(x)),
+             fill="#1982C4", 
+             size=5 ,fontface="bold") +
+  geom_label(aes(x=-2, y=0.3),
+             label=expression(q(x)),
+             fill="#AAFAC8", 
+             size=5 ,fontface="bold") +
+  geom_text(x=-1, y=-0.13, label=expression(theta)) +
+  geom_text(x=0.4, y=-0.1, label=expression(theta^"|")) +
+  geom_segment(aes(x=0.4,xend=0.4,y=0,yend=exp(0.4*(0.4-0.4)^2-0.08*(0.4)^4)),linetype="dashed") +
+  geom_segment(aes(x=-1,xend=-1,y=0,yend=exp(0.4*(-1-0.4)^2-0.08*(-1)^4)),linetype="dashed") +
+  geom_segment(aes(x=-1,xend=-4,y=exp(0.4*(-1-0.4)^2-0.08*(-1)^4),yend=exp(0.4*(-1-0.4)^2-0.08*(-1)^4)),linetype="dotted") +
+  geom_segment(aes(x=0.4,xend=-4,y=exp(0.4*(0.4-0.4)^2-0.08*(0.4)^4),yend=exp(0.4*(0.4-0.4)^2-0.08*(0.4)^4)),linetype="dotted")
+
+
+```
+
+A continuación se presentan las funciones usadas para aplicar el método en los casos en los que $f(\mu)$ es unidimensional y bidimensional:
 
 ::: {.callout-note}
 
