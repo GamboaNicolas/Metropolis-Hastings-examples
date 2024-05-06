@@ -54,17 +54,17 @@ Un método sencillo de emplear y que reporta buenos resultados es el algoritmo d
 
 # Metodología
 
-Si se quiere obtener una muestra de la función de densidad $f(x)$ ,de la cual no es sencillo obtener muestras, el algoritmo de Metropolis-Hastings plantea que proponiendo una función $q(x)$ conocida, de la cual es sencillo muestrear, y un punto inicial ($\theta$) es posible obtener muestras de la función $f(x)$. 
+Si se quiere obtener una muestra de la función de densidad $f(x)$ ,de la cual no es sencillo obtener muestras, el algoritmo de Metropolis-Hastings plantea que proponiendo una función $q(x)$ conocida, de la cual es sencillo muestrear, y un punto inicial ($\theta_0$) es posible obtener muestras de la función $f(x)$. 
 
 El método funciona de la siguiente forma:
 
-- De la distribución $q(x)$ centrada en $\theta$ muestrear un nuevo punto ($\theta'$)
+- De la distribución $q(x)$ centrada en $\theta_0$ muestrear un nuevo punto ($\theta'$)
 
-- Si la densidad de la función $f(x)$ es mayor en $\theta'$ que en $\theta$, entonces $\theta'$ formará parte de la muestra, en caso contrario será parte de la muestra con probabilidad $\frac{f(\theta')}{f(\theta)}\frac{q(\theta \ |\theta')}{q(\theta' \ |\theta)}$ o con probabilidad $1-\frac{f(\theta')}{f(\theta)}\frac{q(\theta \ |\theta')}{q(\theta' \ |\theta)}$ se repetirá $\theta$ en la muestra.
+- Si la densidad de la función $f(x)$ es mayor en $\theta'$ que en $\theta_0$, entonces $\theta'$ formará parte de la muestra, en caso contrario será parte de la muestra con probabilidad $\frac{f(\theta')}{f(\theta_0)}\frac{q(\theta_0 \ |\theta')}{q(\theta' \ |\theta_0)}$ o con probabilidad $1-\frac{f(\theta')}{f(\theta)}\frac{q(\theta \ |\theta')}{q(\theta' \ |\theta)}$ se repetirá $\theta$ en la muestra.
 
 - Repetir el proceso, obteniendo nuevos puntos propuestos a partir de $q(x)$ centrada en el último valor muestreado.
 
-En definitiva, la probabilidad de seleccionar $\theta'$ como nuevo valor de la muestra es $\alpha = min\left\{1;\frac{f(\theta')}{f(\theta)}\frac{q(\theta \ |\theta')}{q(\theta' \ |\theta)}\right\}$
+En definitiva, la probabilidad de seleccionar $\theta'$ como nuevo valor de la muestra es $\alpha = min\left\{1;\frac{f(\theta')}{f(\theta_0)}\frac{q(\theta_0 \ |\theta')}{q(\theta' \ |\theta_0)}\right \}$
 
 ```{r}
 #| fig-cap: "Ejemplificación de la obtención de una muestra por el método de Metropolis-Hastings"
@@ -87,7 +87,7 @@ ggplot(tibble(x,f)) +
              curvature = -0.5,
              arrow = arrow(length = unit(0.02, "npc"),type="closed"),
              col="black") + 
-  geom_label(aes(x=-2.6, y=2),
+  geom_label(aes(x=-2.6, y=2.25),
              label=expression(f(x)),
              fill="#1982C4", 
              size=5 ,fontface="bold") +
@@ -95,61 +95,81 @@ ggplot(tibble(x,f)) +
              label=expression(q(x)),
              fill="#AAFAC8", 
              size=5 ,fontface="bold") +
-  geom_text(x=-1, y=-0.13, label=expression(theta)) +
+  geom_text(x=-1, y=-0.13, label=expression(theta[0])) +
   geom_text(x=0.4, y=-0.1, label=expression(theta^"|")) +
   geom_segment(aes(x=0.4,xend=0.4,y=0,yend=exp(0.4*(0.4-0.4)^2-0.08*(0.4)^4)),linetype="dashed") +
   geom_segment(aes(x=-1,xend=-1,y=0,yend=exp(0.4*(-1-0.4)^2-0.08*(-1)^4)),linetype="dashed") +
   geom_segment(aes(x=-1,xend=-4,y=exp(0.4*(-1-0.4)^2-0.08*(-1)^4),yend=exp(0.4*(-1-0.4)^2-0.08*(-1)^4)),linetype="dotted") +
-  geom_segment(aes(x=0.4,xend=-4,y=exp(0.4*(0.4-0.4)^2-0.08*(0.4)^4),yend=exp(0.4*(0.4-0.4)^2-0.08*(0.4)^4)),linetype="dotted")
+  geom_segment(aes(x=0.4,xend=-4,y=exp(0.4*(0.4-0.4)^2-0.08*(0.4)^4),yend=exp(0.4*(0.4-0.4)^2-0.08*(0.4)^4)),linetype="dotted") +
+  ylim(-0.1, 3)
 
 
 ```
 
-A continuación se presentan las funciones usadas para aplicar el método en los casos en los que $f(\mu)$ es unidimensional y bidimensional:
+A continuación se presentan las funciones usadas para aplicar el método en los casos en los que $f$ es unidimensional y bidimensional:
 
 ::: {.callout-note}
 
 ## Algoritmo Metrópolis-Hastings univariado
 
 ```{r algoritmo mh univariado doc, echo = T}
-sample_mh <- function(n, d_objetivo, r_propuesta = NULL, d_propuesta = NULL,
-                      p_inicial = NULL){
-
+sample_mh <- function(n, d_objetivo, r_propuesta = NULL, 
+                      d_propuesta = NULL, p_inicial = NULL){
+  
+  # Posibles errores al llamar a la función
+  if (length(p_inicial) != 1) {
+    stop("El valor p_inicial debe ser unidimensional")
+  }
+  if ( n <= 0 || n %% 1 != 0) {
+    stop("El tamaño de muestra n debe ser entero y mayor que 0")
+  }
+  
+  # En caso de no definir una distribución propuesta se utiliza
+  # una normal con varianza igual a 1
   if (is.null(r_propuesta) | is.null(d_propuesta)) {
     r_propuesta <- function(media) rnorm(n = 1, media, sd = 1)
     d_propuesta <- function(x, media) dnorm(x = x,media, sd = 1)
   }
   
+  # Se definen valores iniciales
   stopifnot(n > 0)
   contador <- 0
   muestras <- numeric(n)
-  
   muestras[1] <- p_inicial
-
+  
+  # Iteraciones para obtener las n-1 muestras restantes
   for(i in 2:n) {
-    
+    # Se define el valor actual, y el nuevo valor propuesto
     p_actual <- muestras[i-1]
     p_propuesta <- r_propuesta(p_actual)
-
+    
+    # Se calculan las densidades de estos 
+    # valores para las distribuciones propuesta y objetivo 
     q_actual <- d_propuesta(p_actual, p_propuesta)
     q_nuevo <- d_propuesta(p_propuesta, p_actual)
-    
     f_actual <- d_objetivo(p_actual)
     f_nuevo <- d_objetivo(p_propuesta)
+    
+    # Si la densidad del valor actual para la distribución obj es 0,
+    # se elige el nuevo valor propuesto con probabilidad 1
     
     if (f_actual == 0 || q_nuevo == 0) {
       alfa <- 1
     } else {
       alfa <- min(1, (f_nuevo/f_actual)*(q_actual/q_nuevo))
     }
-
-    muestras[i] <- sample(c(p_propuesta, p_actual),
-    size = 1, prob = c(alfa, 1-alfa))
     
+    # Se elige el nuevo valor de la muestra con una probabilidad alfa
+    muestras[i] <- sample(c(p_propuesta, p_actual),
+                          size = 1, prob = c(alfa, 1-alfa))
+
+    # Se actualiza el número de saltos aceptados
     if(muestras[i] != muestras[i-1]) {
       contador <- contador + 1
     }
   }
+  # Devuelve una lista con 2 elementos. Un data frame con la
+  # muestra y la tasa de aceptación.
   return(list(cadena = data.frame(iteracion = 1:n, x = muestras), 
        tasa_aceptacion = contador / n))
 }
@@ -167,6 +187,7 @@ sample_mh <- function(n, d_objetivo, r_propuesta = NULL, d_propuesta = NULL,
 ```{r algoritmo m-h bivariado doc, echo = T}
 sample_mh_mv <- function(n, d_objetivo, cov_propuesta = diag(2), p_inicial = numeric(2)) {
   
+  # Posibles errores al llamar a la función
   if (length(p_inicial) != 2) {
     stop("El valor p_inicial debe ser bidimensional")
   }
@@ -177,48 +198,55 @@ sample_mh_mv <- function(n, d_objetivo, cov_propuesta = diag(2), p_inicial = num
     stop("La matriz de covariancia debe ser de 2x2")
   }
   
-  contador <- 0
-  
+  # Distribuciones propuestas a utilizar
   r_propuesta <-  function(media) rmvnorm(n = 1,mean = media,sigma = cov_propuesta)
   d_propuesta <- function(x, media) dmvnorm(x = x,mean = media,sigma = cov_propuesta)
   
+  # Se definen valores iniciales
+  contador <- 0
   muestras <- matrix(0,nrow = n,ncol = length(p_inicial))
   muestras[1, ] <- p_inicial
   
+  # Iteraciones para obtener las n-1 muestras restantes
   for(i in 2:n) {
+    # Se define el valor actual, y el nuevo valor propuesto
     p_actual <- muestras[i-1,]
     p_propuesta <- r_propuesta(p_actual)
     
+    # Se calculan las densidades de estos 
+    # valores para las distribuciones propuesta y objetivo 
     q_actual <- d_propuesta(p_actual, p_propuesta)
     q_nuevo <- d_propuesta(p_propuesta, p_actual)
-    
     f_actual <- d_objetivo(p_actual)
     f_nuevo <- d_objetivo(p_propuesta)
     
-    
+    # Si la densidad del valor actual para la distribución obj es 0,
+    # se elige el nuevo valor propuesto con probabilidad 1
     if (f_actual == 0 || q_nuevo == 0) {
       alfa <- 1
     } else {
-      
       alfa <- min(1, (f_nuevo/f_actual)*(q_actual/q_nuevo))
     }
     
+    # Se elige el nuevo valor de la muestra con una probabilidad alfa
     aceptar <- rbinom(1,1,alfa)
-    
     if (aceptar) {
       muestras[i,] <- p_propuesta
     }else{
       muestras[i,] <- p_actual
     }
     
+    # Se actualiza el número de saltos aceptados
     if(!any(muestras[i,] != muestras[i-1,])) {
       contador <- contador + 1
     }
   }
-  salida <- data.frame(iteracion = 1:n, x = muestras)
-  colnames(salida) <- c("iteracion", paste0("dim_",1:length(p_inicial)))
   
+  salida <- data.frame(iteracion = 1:n, x = muestras) |> 
+    `colnames<-`(paste0("dim_",1:length(p_inicial)))
   
+  # Devuelve una lista con 2 elementos. Un data frame con la
+  # muestra y la tasa de aceptación.
   return(list(muestra_mh = salida,
        probabilidad_aceptacion = contador / n))
 
