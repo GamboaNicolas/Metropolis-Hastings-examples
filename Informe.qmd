@@ -60,9 +60,11 @@ knitr::include_graphics("logounr.png")
 
 \Large
 **METRÓPOLIS-HASTINGS**
-\newline
+
+
 \vspace{0.3cm}
 \large
+
 *"Markov chain Monte Carlo (MCMC) method"*
 
 \vspace{9cm}
@@ -98,7 +100,6 @@ Particularmente en el campo de la _Estadística Bayesiana_, esto resulta útil y
 
 Un método sencillo de emplear y que reporta buenos resultados es el algoritmo de [_Metropolis-Hastings_](https://es.wikipedia.org/wiki/Algoritmo_de_Metropolis-Hastings). 
 
-\newpage
 
 # Metodología
 
@@ -121,14 +122,14 @@ x <- seq(-4,4,0.01)
 f <- exp(0.4*(x-0.4)^2-0.08*x^4)
 
 ggplot(tibble(x,f)) +
-  geom_line(aes(x=x,y=f),linewidth=1,col="#1982C4") +
-  geom_ribbon(aes(x=x,ymin=0,ymax=f),alpha=0.6,fill="#1982C4") +
+  geom_line(aes(x=x,y=f),linewidth=1,col="dodgerblue3") +
+  geom_ribbon(aes(x=x,ymin=0,ymax=f),alpha=0.6,fill="dodgerblue3") +
   xlab(expression(theta)) +
   theme(axis.title.y = element_blank()) +
   geom_line(data=tibble(x=seq(-4,2,0.01),y=dnorm(x,-1,0.8)),
-            aes(x=x,y=y), col="#AAFAC8") +
+            aes(x=x,y=y), col="#ff3d58") +
   geom_ribbon(data=tibble(x=seq(-4,2,0.01),y=dnorm(x,-1,0.8)),
-              aes(x=x,ymin=0,ymax=y), fill="#AAFAC8",alpha=0.6) +
+              aes(x=x,ymin=0,ymax=y), fill="#ff3d58",alpha=0.6) +
   geom_point(aes(x=-1,y=0),shape="square",size=2.5) +
   geom_point(aes(x=0.4,y=0),shape=17,size=2.5) +
   geom_curve(aes(x=-1,xend=0.35,y=0.1,yend=0.1),
@@ -137,13 +138,13 @@ ggplot(tibble(x,f)) +
              col="black") +
   geom_label(aes(x=-2.6, y=2.25),
              label=expression(f(x)),
-             fill="#1982C4",
+             fill="dodgerblue3",
              size=5 ,fontface="bold") +
   geom_label(aes(x=-2, y=0.3),
              label=expression(q(x)),
-             fill="#AAFAC8",
+             fill="#ff3d58",
              size=5 ,fontface="bold") +
-  annotate(geom = "text", x=c(-1, 0.4), y=c(-0.15, -0.12), label=c(expression(theta[0]), expression(theta^"|"))) +
+  annotate(geom = "text", x=c(-0.95, 0.4), y=c(-0.18, -0.14), label=c(expression(theta[0]), expression(theta^"|"))) +
   geom_segment(aes(x=0.4,xend=0.4,y=0,yend=exp(0.4*(0.4-0.4)^2-0.08*(0.4)^4)),linetype="dashed") +
   geom_segment(aes(x=-1,xend=-1,y=0,yend=exp(0.4*(-1-0.4)^2-0.08*(-1)^4)),linetype="dashed") +
   geom_segment(aes(x=-1,xend=-4,y=exp(0.4*(-1-0.4)^2-0.08*(-1)^4),yend=exp(0.4*(-1-0.4)^2-0.08*(-1)^4)),linetype="dotted") +
@@ -176,12 +177,22 @@ sample_mh <- function(n, d_objetivo, r_propuesta = NULL,
     d_propuesta <- function(x, media) dnorm(x = x,media, sd = 1)
   }
   
+```
+
+:::
+
+\newpage
+
+:::{.callout-note}
+##       
+```{r algoritmo mh univariado doc 2, echo = T, eval=FALSE}
+
   # Se definen valores iniciales
   stopifnot(n > 0)
   contador <- 0
   muestras <- numeric(n)
   muestras[1] <- p_inicial
-  
+
   # Iteraciones para obtener las n-1 muestras restantes
   for(i in 2:n) {
     # Se define el valor actual, y el nuevo valor propuesto
@@ -194,16 +205,8 @@ sample_mh <- function(n, d_objetivo, r_propuesta = NULL,
     q_nuevo <- d_propuesta(p_propuesta, p_actual)
     f_actual <- d_objetivo(p_actual)
     f_nuevo <- d_objetivo(p_propuesta)
-```
 
-:::
-
-\newpage
-
-:::{.callout-note}
-##       
-```{r algoritmo mh univariado doc 2, echo = T, eval=FALSE}
-# Si la densidad del valor actual para la distribución obj es 0,
+    # Si la densidad del valor actual para la distribución obj es 0,
     # se elige el nuevo valor propuesto con probabilidad 1
     
     if (f_actual == 0 || q_nuevo == 0) {
@@ -323,7 +326,9 @@ sample_mh_mv <- function(n, d_objetivo, cov_propuesta = diag(2),
 
 # Discusiones
 
-## Distribución de Kumaraswamy
+## Metropolis-Hastings en una dimensión
+
+### Distribución de Kumaraswamy
 
 La distribución de Kumaraswamy es una distribución de probabilidad continua que se utiliza para modelar variables aleatorias con soporte en el intervalo $(0,1)$, cuya función de densidad es: \newline $f(x|a,b) = abx^{a-1}(1-x^a)^{b-1}, \ con \ a,b>0$
 
@@ -371,9 +376,9 @@ Por lo general la distribución elegida para estas situaciones suele ser la beta
 
 La distribución de Kumaraswamy se comporta de manera muy similar a la beta, sin tener el problema de la dificultad del cálculo de la integral. 
 
-## Metropolis-Hastingsen una dimensión
+\newpage
 
-A continuación utilizaremos el algoritmo de Metropolis-Hastingspara generar 5000 muestras de la distribución de _Kumaraswamy_ con parámetros $a = 6$ y $b = 2$, utilizando como distribución propuesta una $Beta(\mu, \kappa)$, donde $\mu$ representa la media de la distribución y $\kappa$ el grado de la concentración de la distribución. Esto lo haremos para 3 valores distintos de $\kappa$.
+A continuación utilizaremos el algoritmo de Metropolis-Hastings para generar 5000 muestras de la distribución de _Kumaraswamy_ con parámetros $a = 6$ y $b = 2$, utilizando como distribución propuesta una $Beta(\mu, \kappa)$, donde $\mu$ representa la media de la distribución y $\kappa$ el grado de la concentración de la distribución. Esto lo haremos para 3 valores distintos de $\kappa$.
 
 ```{r comparacion de las cadenas}
 get_beta_param <- function(media, kappa) {
@@ -519,7 +524,7 @@ kumar_95_lg <- logit(qkumar(p = 0.95, shape1 = 6, shape2 = 2)) |> round(digits =
 \newpage
 
 
-Resulta de interés ver como afecta la elección del parámetro $\kappa$ al utilizar Metropolis-Hastingspara obtener muestras de la distribución de Kumaraswamy usando una distribución $Beta$ como propuesta. Es por esto que se decide obtener la media y ciertos cuantiles sobre las muestras obtenidas y sobre la función Logit de estas.
+Resulta de interés ver como afecta la elección del parámetro $\kappa$ al utilizar Metropolis-Hastings para obtener muestras de la distribución de Kumaraswamy usando una distribución $Beta$ como propuesta. Es por esto que se decide obtener la media y ciertos cuantiles sobre las muestras obtenidas y sobre la función Logit de estas.
 
 ```{r tablita fachera}
 filas <- rep(c("$X$", "$Logit(X)$"), each = 3)
@@ -572,9 +577,11 @@ valores_reales |>
 
 Si bien las diferencias en dispersión de las muestras no son muy perceptibles a simple vista, gracias a la funcióm logit podemos percibirlas con mayor facilidad. Es así que se puede concluir que usando una distribución $Beta$ con un parámetro $\kappa = 2$ de concentración, es que se obtienen las estimaciones más cercanas a la distribución de Kumaraswamy con parámetros $a = 6$ y $b = 2$. 
 
+\newpage
 
 ## Metropolis-Hastings en dos dimensiones
 
+### Normal Bivariada
 
 El algoritmo de Metropolis-Hastings se aprecia más cuando se obtienen muestras de distribuciones en más de una dimensión, incluso cuando no se conoce la constante de normalización, sin embargo tiene limitaciones para cierta funciones, las cuales se verán a continuación.
 
@@ -700,8 +707,6 @@ neff_tabla |>
 
 Considerando los tamaños de muestras efectivos en cada dimensión y los gráficos de autocorrelación observados, se puede concluir que con la matriz de covarianzas $\Sigma_1$ se obtienen muestras aparentemente mejores de la distribución objetivo.
 
-\newpage
-
 Para ver la bondad de la muestra generada por Metropolis-Hastings, se calculan ciertas probabilidades y luego se comparan con otros métodos de cálculo de probabilidades, como "Función de distribución" y "Método de MonteCarlo".
 
 ```{r calculo de las probabilidades normal bivariada estimadas}
@@ -756,7 +761,9 @@ probabilidades_nb |>
 
 Podemos concluir que las estimaciones de las probabilidades calculadas son bastante acertadas, debido a su similitud con los otros métodos.
 
-## Función de Rosenbrock
+\newpage
+
+### Función de Rosenbrock
 
 Es una función matemática, popularmente conocida como *La banana de Rosenbrock* utilizada frecuentemente como prueba de algoritmos de optimización numérica.
 
@@ -882,7 +889,6 @@ neff_tabla_ros |>
 
 Considerando en los tamaños de las muestras efectivas en cada dimensión y en los gráficos de autocorrelación observados, parece que la matriz de covarianzas $\Sigma_2$ genera muestras que ajustan mejor a la distribución objetivo.
 
-\newpage
 
 Para ver que tan bien funciona Metropolis-Hastings en esta situación compleja, interesa calcular ciertas probabilidades y compararlas con el método de "Integración Manual".
 
@@ -936,7 +942,7 @@ probabilidades_banana |>
 
 Se puede observar que el algoritmo en esta situación falla bastante en la generación de las muestras, dado que la estimación de las probabilidades son muy diferentes a las calculadas por un método casi exacto.
 
-
+\newpage
 
 # Conclusión
 
@@ -949,10 +955,6 @@ Una limitación que presenta es el costo computacional en casos de alta dimensio
 
 
 
-
-
-
-\newpage
 
 # Anexo
 
