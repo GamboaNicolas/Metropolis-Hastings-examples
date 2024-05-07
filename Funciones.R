@@ -1,8 +1,137 @@
+sample_mh <- function(n, d_objetivo, r_propuesta = NULL, 
+                      d_propuesta = NULL, p_inicial = NULL){
+  
+  # Posibles errores al llamar a la función
+  if (length(p_inicial) != 1) {
+    stop("El valor p_inicial debe ser unidimensional")
+  }
+  if ( n <= 0 || n %% 1 != 0) {
+    stop("El tamaño de muestra n debe ser entero y mayor que 0")
+  }
+  
+  # En caso de no definir una distribución propuesta se utiliza
+  # una normal con varianza igual a 1
+  if (is.null(r_propuesta) | is.null(d_propuesta)) {
+    r_propuesta <- function(media) rnorm(n = 1, media, sd = 1)
+    d_propuesta <- function(x, media) dnorm(x = x,media, sd = 1)
+  }
+  
+  # Se definen valores iniciales
+  stopifnot(n > 0)
+  contador <- 0
+  muestras <- numeric(n)
+  muestras[1] <- p_inicial
+  
+  # Iteraciones para obtener las n-1 muestras restantes
+  for(i in 2:n) {
+    # Se define el valor actual, y el nuevo valor propuesto
+    p_actual <- muestras[i-1]
+    p_propuesta <- r_propuesta(p_actual)
+    
+    # Se calculan las densidades de estos 
+    # valores para las distribuciones propuesta y objetivo 
+    q_actual <- d_propuesta(p_actual, p_propuesta)
+    q_nuevo <- d_propuesta(p_propuesta, p_actual)
+    f_actual <- d_objetivo(p_actual)
+    f_nuevo <- d_objetivo(p_propuesta)
+    
+    # Si la densidad del valor actual para la distribución obj es 0,
+    # se elige el nuevo valor propuesto con probabilidad 1
+    
+    if (f_actual == 0 || q_nuevo == 0) {
+      alfa <- 1
+    } else {
+      alfa <- min(1, (f_nuevo/f_actual)*(q_actual/q_nuevo))
+    }
+    
+    # Se elige el nuevo valor de la muestra con una probabilidad alfa
+    muestras[i] <- sample(c(p_propuesta, p_actual),
+                          size = 1, prob = c(alfa, 1-alfa))
+    
+    # Se actualiza el número de saltos aceptados
+    if(muestras[i] != muestras[i-1]) {
+      contador <- contador + 1
+    }
+  }
+  # Devuelve una lista con 2 elementos. Un data frame con la
+  # muestra y la tasa de aceptación.
+  return(list(cadena = data.frame(iteracion = 1:n, x = muestras), 
+              tasa_aceptacion = contador / n))
+}
+
+sample_mh_mv <- function(n, d_objetivo, cov_propuesta = diag(2), p_inicial = numeric(2)) {
+  
+  # Posibles errores al llamar a la función
+  if (length(p_inicial) != 2) {
+    stop("El valor p_inicial debe ser bidimensional")
+  }
+  if ( n <= 0 || n %% 1 != 0) {
+    stop("El tamaño de muestra n debe ser entero y mayor que 0")
+  }
+  if (any((dim(cov_propuesta) != c(2,2)))) {
+    stop("La matriz de covariancia debe ser de 2x2")
+  }
+  
+  # Distribuciones propuestas a utilizar
+  r_propuesta <-  function(media) rmvnorm(n = 1,mean = media,sigma = cov_propuesta)
+  d_propuesta <- function(x, media) dmvnorm(x = x,mean = media,sigma = cov_propuesta)
+  
+  # Se definen valores iniciales
+  contador <- 0
+  muestras <- matrix(0,nrow = n,ncol = length(p_inicial))
+  muestras[1, ] <- p_inicial
+  
+  # Iteraciones para obtener las n-1 muestras restantes
+  for(i in 2:n) {
+    # Se define el valor actual, y el nuevo valor propuesto
+    p_actual <- muestras[i-1,]
+    p_propuesta <- r_propuesta(p_actual)
+    
+    # Se calculan las densidades de estos 
+    # valores para las distribuciones propuesta y objetivo 
+    q_actual <- d_propuesta(p_actual, p_propuesta)
+    q_nuevo <- d_propuesta(p_propuesta, p_actual)
+    f_actual <- d_objetivo(p_actual)
+    f_nuevo <- d_objetivo(p_propuesta)
+    
+    # Si la densidad del valor actual para la distribución obj es 0,
+    # se elige el nuevo valor propuesto con probabilidad 1
+    if (f_actual == 0 || q_nuevo == 0) {
+      alfa <- 1
+    } else {
+      alfa <- min(1, (f_nuevo/f_actual)*(q_actual/q_nuevo))
+    }
+    
+    # Se elige el nuevo valor de la muestra con una probabilidad alfa
+    aceptar <- rbinom(1,1,alfa)
+    if (aceptar) {
+      muestras[i,] <- p_propuesta
+    }else{
+      muestras[i,] <- p_actual
+    }
+    
+    # Se actualiza el número de saltos aceptados
+    if(!any(muestras[i,] != muestras[i-1,])) {
+      contador <- contador + 1
+    }
+  }
+  
+  salida <- data.frame(iteracion = 1:n, x = muestras) |> 
+    `colnames<-`(c("iteracion", paste0("dim_",1:length(p_inicial))))
+  
+  # Devuelve una lista con 2 elementos. Un data frame con la
+  # muestra y la tasa de aceptación.
+  return(list(muestra_mh = salida,
+              probabilidad_aceptacion = contador / n))
+  
+}
+
+
 plot_hist <- function(muestra, d_objetivo) {
     muestra |> 
     ggplot() +
     geom_histogram(aes(x = x, after_stat(density)), color = "black", fill = "dodgerblue3", bins = 40) +
-    geom_line(aes(x = x, y = d_objetivo(x)), color = "red", linewidth = 1.2) +
+    geom_line(aes(x = x, y = d_objetivo(x)), color = "firebrick1", linewidth = 1.2) +
     labs(x = "x", y = "Densidad")
 }
 
@@ -13,21 +142,22 @@ plot_trace <- function(muestra) {
     muestra |>
       pivot_longer(dim_1:dim_2, names_to = "dimension", values_to = "x") |> 
       ggplot() +
-      geom_line(aes(x = iteracion, y = x, color = dimension), linewidth = 0.5) +
+      geom_line(aes(x = iteracion, y = x, color = dimension), linewidth = 0.25) +
       labs(x = "Iteración", y = "Muestra") +
-      facet_wrap(~dimension, ncol = 1, labeller = as_labeller(c(dim_1="x[1]", dim_2="x[2]"), default = label_parsed)) +
+      facet_wrap(~dimension, ncol = 1, 
+                 labeller = as_labeller(c(dim_1="x[1]", dim_2="x[2]"), default = label_parsed)) +
+      scale_color_manual(values = c("dodgerblue3", "firebrick1"))+
       theme(legend.position = "None", strip.background = element_blank())
   } else {
     
     muestra |>
       ggplot() +
-      geom_line(aes(x = iteracion, y = x)) +
+      geom_line(aes(x = iteracion, y = x), linewidth = 0.25, color = "dodgerblue3") +
       labs(x = "Iteración", y = "Muestra")
   }
 }
 
 plot_autocor <- function(muestra) {
-  
   
   if (ncol(muestra) == 3) {
     
@@ -36,9 +166,9 @@ plot_autocor <- function(muestra) {
       autocorrelacion = acf(muestra$dim_1,lag.max = 20,plot = F)$acf
     ) |> 
       ggplot(aes(x = rezago, y = autocorrelacion))+
-      geom_point(size = 2)+
       geom_col(width = 0.07)+
-      geom_line(linewidth = 1, color = "blue")+
+      geom_line(linewidth = 1, color = "dodgerblue3")+
+      geom_point(size = 2)+
       geom_hline(yintercept = 0, linewidth = 0.6) +
       labs(x = "Rezago", y = "Autocorrelación", subtitle = expression(x[1]))
     
@@ -47,9 +177,9 @@ plot_autocor <- function(muestra) {
       autocorrelacion = acf(muestra$dim_2,lag.max = 20,plot = F)$acf
     ) |> 
       ggplot(aes(x = rezago, y = autocorrelacion))+
-      geom_point(size = 2)+
       geom_col(width = 0.07)+
-      geom_line(linewidth = 1, color = "blue")+
+      geom_line(linewidth = 1, color = "dodgerblue3")+
+      geom_point(size = 2)+
       geom_hline(yintercept = 0, linewidth = 0.6) +
       labs(x = "Rezago", y = "Autocorrelación", subtitle = expression(x[2]))
     
@@ -64,7 +194,7 @@ plot_autocor <- function(muestra) {
       ggplot(aes(x = rezago, y = autocorrelacion))+
       geom_point(size = 2)+
       geom_col(width = 0.07)+
-      geom_line(linewidth = 1, color = "blue")+
+      geom_line(linewidth = 1, color = "dodgerblue3")+
       geom_hline(yintercept = 0, linewidth = 0.9) +
       labs(x = "Rezago", y = "Autocorrelación")
   }

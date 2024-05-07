@@ -22,13 +22,16 @@ header-includes:
 ---
 
 
-```{r Carga de librerias}
+```{r Carga de librerias y funciones}
 library(tidyverse)
 library(mvtnorm)
 library(patchwork)
 library(tinytable)
 library(pracma)
 library(VGAM)
+
+# Funciones a utilizar
+source("Funciones.R")
 ```
 
 ```{r Configuraciones predeterminadas}
@@ -38,6 +41,51 @@ set.seed("2126519")
 
 theme_set(theme_bw())
 ```
+
+<!-- \Centering -->
+
+<!-- \vspace{3cm} -->
+
+<!-- ```{r logo facultad, echo=F, include = T, out.width= "60%"} -->
+<!-- knitr::include_graphics("logounr.png") -->
+<!-- ``` -->
+
+<!-- \pagenumbering{gobble} -->
+
+<!-- \vspace{5cm} -->
+
+<!-- \Large -->
+<!-- **LICENCIATURA EN ESTADÍSTICA** -->
+
+<!-- \vspace{1cm} -->
+
+<!-- \Large -->
+<!-- **METRÓPOLIS-HASTING**  -->
+<!-- \newline -->
+<!-- \vspace{0.3cm} -->
+<!-- \large -->
+<!-- *"Markov chain Monte Carlo (MCMC) method"* -->
+
+<!-- \vspace{9cm} -->
+
+<!-- \large -->
+
+<!-- **Autores: Franco Santini - Nicolas Gamboa - Andrés Roncaglia** -->
+
+<!-- **Docentes: Ignacio Evangelista - Tomás Capretto** -->
+
+<!-- **2024** -->
+<!-- \normalsize -->
+<!-- \newpage -->
+<!-- \hypersetup{linkcolor = black} -->
+<!-- \tableofcontents -->
+
+
+<!-- \newpage -->
+<!-- \pagenumbering{arabic} -->
+
+<!-- \RaggedRight -->
+<!-- \newpage -->
 
 
 # Introducción
@@ -66,43 +114,40 @@ El método funciona de la siguiente forma:
 
 En definitiva, la probabilidad de seleccionar $\theta'$ como nuevo valor de la muestra es $\alpha = min\left\{1;\frac{f(\theta')}{f(\theta_0)}\frac{q(\theta_0 \ |\theta')}{q(\theta' \ |\theta_0)}\right \}$
 
-```{r}
+```{r Ejemplo M-H}
 #| fig-cap: "Ejemplificación de la obtención de una muestra por el método de Metropolis-Hastings"
-# 
-# x <- seq(-4,4,0.01)
-# f <- exp(0.4*(x-0.4)^2-0.08*x^4)
-# 
-# ggplot(tibble(x,f)) +
-#   geom_line(aes(x=x,y=f),linewidth=1,col="#1982C4") +
-#   geom_ribbon(aes(x=x,ymin=0,ymax=f),alpha=0.6,fill="#1982C4") +
-#   xlab(expression(theta)) +
-#   theme(axis.title.y = element_blank()) +
-#   geom_line(data=tibble(x=seq(-4,2,0.01),y=dnorm(x,-1,0.8)),
-#             aes(x=x,y=y), col="#AAFAC8") +
-#   geom_ribbon(data=tibble(x=seq(-4,2,0.01),y=dnorm(x,-1,0.8)),
-#               aes(x=x,ymin=0,ymax=y), fill="#AAFAC8",alpha=0.6) +
-#   geom_point(aes(x=-1,y=0),shape="square",size=2.5) + 
-#   geom_point(aes(x=0.4,y=0),shape=17,size=2.5) +
-#   geom_curve(aes(x=-1,xend=0.35,y=0.1,yend=0.1),
-#              curvature = -0.5,
-#              arrow = arrow(length = unit(0.02, "npc"),type="closed"),
-#              col="black") + 
-#   geom_label(aes(x=-2.6, y=2.25),
-#              label=expression(f(x)),
-#              fill="#1982C4", 
-#              size=5 ,fontface="bold") +
-#   geom_label(aes(x=-2, y=0.3),
-#              label=expression(q(x)),
-#              fill="#AAFAC8", 
-#              size=5 ,fontface="bold") +
-#   geom_text(x=-1, y=-0.13, label=expression(theta[0])) +
-#   geom_text(x=0.4, y=-0.1, label=expression(theta^"|")) +
-#   geom_segment(aes(x=0.4,xend=0.4,y=0,yend=exp(0.4*(0.4-0.4)^2-0.08*(0.4)^4)),linetype="dashed") +
-#   geom_segment(aes(x=-1,xend=-1,y=0,yend=exp(0.4*(-1-0.4)^2-0.08*(-1)^4)),linetype="dashed") +
-#   geom_segment(aes(x=-1,xend=-4,y=exp(0.4*(-1-0.4)^2-0.08*(-1)^4),yend=exp(0.4*(-1-0.4)^2-0.08*(-1)^4)),linetype="dotted") +
-#   geom_segment(aes(x=0.4,xend=-4,y=exp(0.4*(0.4-0.4)^2-0.08*(0.4)^4),yend=exp(0.4*(0.4-0.4)^2-0.08*(0.4)^4)),linetype="dotted") +
-#   ylim(-0.1, 3)
-# 
+
+x <- seq(-4,4,0.01)
+f <- exp(0.4*(x-0.4)^2-0.08*x^4)
+
+ggplot(tibble(x,f)) +
+  geom_line(aes(x=x,y=f),linewidth=1,col="#1982C4") +
+  geom_ribbon(aes(x=x,ymin=0,ymax=f),alpha=0.6,fill="#1982C4") +
+  xlab(expression(theta)) +
+  theme(axis.title.y = element_blank()) +
+  geom_line(data=tibble(x=seq(-4,2,0.01),y=dnorm(x,-1,0.8)),
+            aes(x=x,y=y), col="#AAFAC8") +
+  geom_ribbon(data=tibble(x=seq(-4,2,0.01),y=dnorm(x,-1,0.8)),
+              aes(x=x,ymin=0,ymax=y), fill="#AAFAC8",alpha=0.6) +
+  geom_point(aes(x=-1,y=0),shape="square",size=2.5) +
+  geom_point(aes(x=0.4,y=0),shape=17,size=2.5) +
+  geom_curve(aes(x=-1,xend=0.35,y=0.1,yend=0.1),
+             curvature = -0.5,
+             arrow = arrow(length = unit(0.02, "npc"),type="closed"),
+             col="black") +
+  geom_label(aes(x=-2.6, y=2.25),
+             label=expression(f(x)),
+             fill="#1982C4",
+             size=5 ,fontface="bold") +
+  geom_label(aes(x=-2, y=0.3),
+             label=expression(q(x)),
+             fill="#AAFAC8",
+             size=5 ,fontface="bold") +
+  annotate(geom = "text", x=c(-1, 0.4), y=c(-0.15, -0.12), label=c(expression(theta[0]), expression(theta^"|"))) +
+  geom_segment(aes(x=0.4,xend=0.4,y=0,yend=exp(0.4*(0.4-0.4)^2-0.08*(0.4)^4)),linetype="dashed") +
+  geom_segment(aes(x=-1,xend=-1,y=0,yend=exp(0.4*(-1-0.4)^2-0.08*(-1)^4)),linetype="dashed") +
+  geom_segment(aes(x=-1,xend=-4,y=exp(0.4*(-1-0.4)^2-0.08*(-1)^4),yend=exp(0.4*(-1-0.4)^2-0.08*(-1)^4)),linetype="dotted") +
+  geom_segment(aes(x=0.4,xend=-4,y=exp(0.4*(0.4-0.4)^2-0.08*(0.4)^4),yend=exp(0.4*(0.4-0.4)^2-0.08*(0.4)^4)),linetype="dotted")
 
 ```
 
@@ -112,7 +157,7 @@ A continuación se presentan las funciones usadas para aplicar el método en los
 
 ## Algoritmo Metrópolis-Hastings univariado
 
-```{r algoritmo mh univariado doc, echo = T}
+```{r algoritmo mh univariado doc 1, echo = T, eval=FALSE}
 sample_mh <- function(n, d_objetivo, r_propuesta = NULL, 
                       d_propuesta = NULL, p_inicial = NULL){
   
@@ -149,8 +194,16 @@ sample_mh <- function(n, d_objetivo, r_propuesta = NULL,
     q_nuevo <- d_propuesta(p_propuesta, p_actual)
     f_actual <- d_objetivo(p_actual)
     f_nuevo <- d_objetivo(p_propuesta)
-    
-    # Si la densidad del valor actual para la distribución obj es 0,
+```
+
+:::
+
+\newpage
+
+:::{.callout-note}
+##       
+```{r algoritmo mh univariado doc 2, echo = T, eval=FALSE}
+# Si la densidad del valor actual para la distribución obj es 0,
     # se elige el nuevo valor propuesto con probabilidad 1
     
     if (f_actual == 0 || q_nuevo == 0) {
@@ -184,8 +237,9 @@ sample_mh <- function(n, d_objetivo, r_propuesta = NULL,
 
 ## Algoritmo Metrópolis-Hastings bivariado
 
-```{r algoritmo m-h bivariado doc, echo = T}
-sample_mh_mv <- function(n, d_objetivo, cov_propuesta = diag(2), p_inicial = numeric(2)) {
+```{r algoritmo m-h bivariado doc 1, echo = T, eval = F}
+sample_mh_mv <- function(n, d_objetivo, cov_propuesta = diag(2), 
+                         p_inicial = numeric(2)) {
   
   # Posibles errores al llamar a la función
   if (length(p_inicial) != 2) {
@@ -219,8 +273,18 @@ sample_mh_mv <- function(n, d_objetivo, cov_propuesta = diag(2), p_inicial = num
     q_nuevo <- d_propuesta(p_propuesta, p_actual)
     f_actual <- d_objetivo(p_actual)
     f_nuevo <- d_objetivo(p_propuesta)
-    
-    # Si la densidad del valor actual para la distribución obj es 0,
+```
+
+:::
+
+\newpage
+
+:::{.callout-note}
+
+##    
+```{r algoritmo m-h bivariado doc 2, echo = T, eval = F}
+
+# Si la densidad del valor actual para la distribución obj es 0,
     # se elige el nuevo valor propuesto con probabilidad 1
     if (f_actual == 0 || q_nuevo == 0) {
       alfa <- 1
@@ -255,11 +319,15 @@ sample_mh_mv <- function(n, d_objetivo, cov_propuesta = diag(2), p_inicial = num
 
 :::
 
+\newpage
+
 # Discusiones
 
 ## Distribución de Kumaraswamy
 
 La distribución de Kumaraswamy es una distribución de probabilidad continua que se utiliza para modelar variables aleatorias con soporte en el intervalo $(0,1)$, cuya función de densidad es: \newline $f(x|a,b) = abx^{a-1}(1-x^a)^{b-1}, \ con \ a,b>0$
+
+
 
 ```{r distribucion de kumaraswamy}
 #| fig-cap: "Función de densidad de la distribución de Kumaraswamy"
@@ -275,8 +343,6 @@ d_kuma <- function(x, a = 6, b = 2){
   
   salida
 }
-
-
 
 tibble(
   x = rep(grilla,times = 5),
@@ -310,8 +376,6 @@ La distribución de Kumaraswamy se comporta de manera muy similar a la beta, sin
 A continuación utilizaremos el algoritmo de Metropolis-Hastingspara generar 5000 muestras de la distribución de _Kumaraswamy_ con parámetros $a = 6$ y $b = 2$, utilizando como distribución propuesta una $Beta(\mu, \kappa)$, donde $\mu$ representa la media de la distribución y $\kappa$ el grado de la concentración de la distribución. Esto lo haremos para 3 valores distintos de $\kappa$.
 
 ```{r comparacion de las cadenas}
-source("Funciones.R")
-
 get_beta_param <- function(media, kappa) {
   alpha <- media*kappa
   beta <- (1-media)*kappa
@@ -520,11 +584,11 @@ Donde $\mu^* = \begin{bmatrix} 0.4 \\ 0.75 \end{bmatrix}$ y $\Sigma^* = \begin{b
 
 Se plantean 3 matrices de covarianzas distintas como propuestas para observar con cual de estas se obtienen muestras mas aproximadas a la verdadera distribución:
 
-1. $\Sigma_1 = \begin{bmatrix} 1 & 0 \\ 0 & 2 \end{bmatrix}$ Se puede ver en @fig-cov1, @fig-trace-cov1 y @fig-autocor1
+1. $\Sigma_1 = \begin{bmatrix} 1 & 0 \\ 0 & 2 \end{bmatrix}$ Se puede ver su densidad en la @fig-cov1, el recorrido de la cadena en la @fig-trace-cov1 y su autocorrelación en la @fig-autocor1.
 
-2. $\Sigma_2 = \begin{bmatrix} 0.25 & 0 \\ 0 & 0.25 \end{bmatrix}$ Se puede ver en @fig-cov2, @fig-trace-cov2 y @fig-autocor2
+2. $\Sigma_2 = \begin{bmatrix} 0.25 & 0 \\ 0 & 0.25 \end{bmatrix}$ Se puede ver su densidad en la @fig-cov2, el recorrido de la cadena en la @fig-trace-cov2 y su autocorrelación en la @fig-autocor2.
 
-3. $\Sigma_3 = \begin{bmatrix} 1 & 0.3 \\ 0.3 & 1 \end{bmatrix}$ Se puede ver en @fig-cov3, @fig-trace-cov3 y @fig-autocor3
+3. $\Sigma_3 = \begin{bmatrix} 1 & 0.3 \\ 0.3 & 1 \end{bmatrix}$ Se puede ver su densidad en la @fig-cov3, el recorrido de la cadena en la @fig-trace-cov3 y su autocorrelación en la @fig-autocor3.
 
 ```{r cadenas de markov bivariadas}
 mu <- c(.4,.75) 
@@ -604,7 +668,7 @@ plot_trace(muestra = cadena3$muestra_mh)
 ```
 
 ```{r autocorrelacion normal bivariada 3}
-#| fig-cap: "Autocorrelación de las muestras obtenidas por Metropolis-Hastings de una $\\mathcal{N}_2(\\mu^*, \ \\Sigma^*)$ con $\\Sigma_1$ como propuesta"
+#| fig-cap: "Autocorrelación de las muestras obtenidas por Metropolis-Hastings de una $\\mathcal{N}_2(\\mu^*, \ \\Sigma^*)$ con $\\Sigma_3$ como propuesta"
 #| label: fig-autocor3
 
 plot_autocor(cadena3$muestra_mh)
@@ -712,7 +776,7 @@ cov_prop_p1 <- diag(c(0.06, 0.07))
 cadena_p1 <- sample_mh_mv(n = 5000, d_objetivo = d_obj_p, cov_propuesta = cov_prop_p1, p_inicial = c(0,0))
 ```
 
-1. $\Sigma_1 = \begin{bmatrix} 0.06 & 0 \\ 0 & 0.07 \end{bmatrix}$ Se puede ver su densidad en @fig-banana1, el recorrido de la cadena en @fig-bananatrace1 y la autocorrelación en @fig-bananacor1. Con esta matriz la probabilidad de aceptación es `r round(cadena_p1$probabilidad_aceptacion, 4)`.
+1. $\Sigma_1 = \begin{bmatrix} 0.06 & 0 \\ 0 & 0.07 \end{bmatrix}$ Se puede ver su densidad en la @fig-banana1, el recorrido de la cadena en la @fig-bananatrace1 y la autocorrelación en la @fig-bananacor1. Con esta matriz la probabilidad de aceptación es `r round(cadena_p1$probabilidad_aceptacion, 4)`.
 
 ```{r banana de rosenbrock 2}
 cov_prop_p2 <- diag(c(1, 1))
@@ -720,7 +784,7 @@ cov_prop_p2 <- diag(c(1, 1))
 cadena_p2 <- sample_mh_mv(n = 5000, d_objetivo = d_obj_p, cov_propuesta = cov_prop_p2, p_inicial = c(0,0))
 ```
 
-2. $\Sigma_2 = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}$ Se puede ver su densidad en @fig-banana2, el recorrido de la cadena en @fig-bananatrace2 y la autocorrelación en @fig-bananacor2. Con esta matriz la probabilidad de aceptación es `r round(cadena_p2$probabilidad_aceptacion, 4)`.
+2. $\Sigma_2 = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}$ Se puede ver su densidad en la @fig-banana2, el recorrido de la cadena en la @fig-bananatrace2 y la autocorrelación en la @fig-bananacor2. Con esta matriz la probabilidad de aceptación es `r round(cadena_p2$probabilidad_aceptacion, 4)`.
 
 ```{r banana de rosenbrock 3}
 cov_prop_p3 <- diag(c(0.5, 0.5))
@@ -728,7 +792,8 @@ cov_prop_p3 <- diag(c(0.5, 0.5))
 cadena_p3 <- sample_mh_mv(n = 5000, d_objetivo = d_obj_p, cov_propuesta = cov_prop_p3, p_inicial = c(0,0))
 ```
 
-3. $\Sigma_3 = \begin{bmatrix} 0.5 & 0 \\ 0 & 0.5 \end{bmatrix}$ Se puede ver su densidad en @fig-banana3, el recorrido de la cadena en @fig-bananatrace3 y la autocorrelación en @fig-bananacor3. Con esta matriz la probabilidad de aceptación es `r round(cadena_p3$probabilidad_aceptacion, 4)`.
+
+3. $\Sigma_3 = \begin{bmatrix} 0.5 & 0 \\ 0 & 0.5 \end{bmatrix}$ Se puede ver su densidad en la @fig-banana3, el recorrido de la cadena en la @fig-bananatrace3 y la autocorrelación en la @fig-bananacor3. Con esta matriz la probabilidad de aceptación es `r round(cadena_p3$probabilidad_aceptacion, 4)`.
 
 
 ```{r hotmap de rosenbrock 1}
@@ -871,11 +936,15 @@ probabilidades_banana |>
 
 Se puede observar que el algoritmo en esta situación falla bastante en la generación de las muestras, dado que la estimación de las probabilidades son muy diferentes a las calculadas por un método casi exacto.
 
-\newpage
+
 
 # Conclusión
 
-Se puede concluir que 
+Metrópolis-Hastings es una herramienta muy útil y sencilla de emplear para generar muestras de distribuciones cuya complejidad se escapa de los métodos de muestreo más populares y directos. A lo largo del estudio se lograron detectar múltiples características tanto positivas como negativas de este método tan utilizado en el campo de la estística bayesiana.
+
+Este método brinda buenos resultados cuando la distribución a muestrear es unidimensional, o en el caso bidimensional siempre y cuando la distribución tenga una forma "sencilla", como por ejemplo una normal bivariada.
+
+Una limitación que presenta es el costo computacional en casos de alta dimensionalidad, o cuando la forma de la distribución a muestrear es muy atípica o con grandes picos como por ejemplo en el caso de la *banana de Rosenbrock*.
 
 
 
@@ -883,14 +952,11 @@ Se puede concluir que
 
 
 
+\newpage
 
+# Anexo
 
-
-
-
-
-
-
+Se pueden replicar los resultados y comprobar los códigos utilizados consultando el [repositorio](https://github.com/GamboaNicolas/Metropolis-Hastings-examples.git) del trabajo.
 
 
 
