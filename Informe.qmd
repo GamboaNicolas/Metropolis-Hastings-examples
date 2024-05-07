@@ -1,5 +1,4 @@
 ---
-title: "Metropolis-Hasting"
 format: 
   pdf:
     fig-pos: "H"
@@ -42,50 +41,51 @@ set.seed("2126519")
 theme_set(theme_bw())
 ```
 
-<!-- \Centering -->
+::: {.center data-latex=""}
 
-<!-- \vspace{3cm} -->
+\vspace{3cm}
 
-<!-- ```{r logo facultad, echo=F, include = T, out.width= "60%"} -->
-<!-- knitr::include_graphics("logounr.png") -->
-<!-- ``` -->
+```{r logo facultad, echo=F, include = T, out.width= "60%"}
+knitr::include_graphics("logounr.png")
+```
 
-<!-- \pagenumbering{gobble} -->
+\pagenumbering{gobble}
 
-<!-- \vspace{5cm} -->
+\vspace{5cm}
 
-<!-- \Large -->
-<!-- **LICENCIATURA EN ESTADÍSTICA** -->
+\Large
+**LICENCIATURA EN ESTADÍSTICA**
 
-<!-- \vspace{1cm} -->
+\vspace{1cm}
 
-<!-- \Large -->
-<!-- **METRÓPOLIS-HASTING**  -->
-<!-- \newline -->
-<!-- \vspace{0.3cm} -->
-<!-- \large -->
-<!-- *"Markov chain Monte Carlo (MCMC) method"* -->
+\Large
+**METRÓPOLIS-HASTINGS**
+\newline
+\vspace{0.3cm}
+\large
+*"Markov chain Monte Carlo (MCMC) method"*
 
-<!-- \vspace{9cm} -->
+\vspace{9cm}
 
-<!-- \large -->
+\large
 
-<!-- **Autores: Franco Santini - Nicolas Gamboa - Andrés Roncaglia** -->
+**Autores: Franco Santini - Nicolas Gamboa - Andrés Roncaglia**
 
-<!-- **Docentes: Ignacio Evangelista - Tomás Capretto** -->
+**Docentes: Ignacio Evangelista - Tomás Capretto**
 
-<!-- **2024** -->
-<!-- \normalsize -->
-<!-- \newpage -->
-<!-- \hypersetup{linkcolor = black} -->
-<!-- \tableofcontents -->
+**2024**
+\normalsize
+\newpage
+\hypersetup{linkcolor = black}
+\tableofcontents
 
 
-<!-- \newpage -->
-<!-- \pagenumbering{arabic} -->
+\newpage
+\pagenumbering{arabic}
 
-<!-- \RaggedRight -->
-<!-- \newpage -->
+:::
+
+\newpage
 
 
 # Introducción
