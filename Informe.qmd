@@ -96,14 +96,14 @@ Uno de los grandes problemas en el mundo de la estadística es la existencia de 
 
 Para estos casos existen distintas técnicas que permiten obtener muestras que, si bien no son tomadas de manera realmente independiente, se comportan de manera muy similar a como lo haría una muestra aleatoria independiente tomada de la función de densidad. 
 
-Particularmente en el campo de la _Estadística Bayesiana_, esto resulta útil ya que permite obtener muestras de la distribución a posteriori, la cual se puede utilizar por ejemplo para obtener un intervalo de credibilidad del parámetro bajo estudio.
+Particularmente en el campo de la _Estadística Bayesiana_, esto resulta útil ya que permite obtener muestras de la distribución a posteriori, la cual se puede utilizar, por ejemplo, para obtener un intervalo de credibilidad del parámetro bajo estudio.
 
-Un método sencillo de emplear y que reporta buenos resultados es el algoritmo de [_Metropolis-Hastings_](https://es.wikipedia.org/wiki/Algoritmo_de_Metropolis-Hastings). 
+Un método sencillo de emplear, y que reporta buenos resultados, es el algoritmo de [_Metropolis-Hastings_](https://es.wikipedia.org/wiki/Algoritmo_de_Metropolis-Hastings). 
 
 
 # Metodología
 
-Si se quiere obtener una muestra de la función de densidad $f(x)$ ,de la cual no es sencillo obtener muestras, el algoritmo de Metropolis-Hastings plantea que proponiendo una función $q(x)$ conocida, de la cual es sencillo muestrear, y un punto inicial ($\theta_0$) es posible obtener muestras de la función $f(x)$. 
+Si se quiere obtener una muestra de la función de densidad $f(x)$, de la cual no es sencillo obtener muestras, el algoritmo de Metropolis-Hastings plantea que proponiendo una función $q(x)$ conocida, de la cual es sencillo muestrear, y un punto inicial ($\theta_0$), es posible obtener muestras de la función $f(x)$. 
 
 El método funciona de la siguiente forma:
 
@@ -372,13 +372,13 @@ tibble(
 
 Esta distribución puede ser utilizada en el ámbito de la estadística bayesiana a la hora de definir un prior para un parámetro con campo de variación en el intervalo (0, 1).
 
-Por lo general la distribución elegida para estas situaciones suele ser la beta ya que presenta ventajas como ser una distribución conjugada de la binomial, lo cual puede facilitar mucho algunos cálculos. El problema es que la densidad de esta depende de la función gamma, la cual es una integral, y en algunas situaciones se puede complicar su cálculo.
+Por lo general, la distribución elegida para estas situaciones suele ser la beta ya que presenta ventajas como ser una distribución conjugada de la binomial, lo cual puede facilitar mucho algunos cálculos. El problema es que la densidad de esta depende de la función gamma, la cual es una integral, y en algunas situaciones se puede complicar su cálculo.
 
 La distribución de Kumaraswamy se comporta de manera muy similar a la beta, sin tener el problema de la dificultad del cálculo de la integral. 
 
 \newpage
 
-A continuación utilizaremos el algoritmo de Metropolis-Hastings para generar 5000 muestras de la distribución de _Kumaraswamy_ con parámetros $a = 6$ y $b = 2$, utilizando como distribución propuesta una $Beta(\mu, \kappa)$, donde $\mu$ representa la media de la distribución y $\kappa$ el grado de la concentración de la distribución. Esto lo haremos para 3 valores distintos de $\kappa$.
+A continuación, utilizaremos el algoritmo de Metropolis-Hastings para generar 5000 muestras de la distribución de _Kumaraswamy_ con parámetros $a = 6$ y $b = 2$, utilizando como distribución propuesta una $Beta(\mu, \kappa)$, donde $\mu$ representa la media de la distribución y $\kappa$ el grado de la concentración de la distribución. Esto lo haremos para 3 valores distintos de $\kappa$.
 
 ```{r comparacion de las cadenas}
 get_beta_param <- function(media, kappa) {
@@ -449,7 +449,7 @@ graficos$Kappa2
 graficos$Kappa5
 ```
 
-Teniendo en cuenta que estas muestras son dependientes resulta de interés conocer a cuantas muestras independientes equivalen, dado que cuanto más se comporta una cadena de Markov dependiente como una muestra independiente, menor es el error en la aproximación posterior resultante. Para ello se calcula el número efectivo de muestras $(n_{eff})$ para cada cadena.
+Teniendo en cuenta que estas muestras son dependientes, resulta de interés conocer a cuantas muestras independientes equivalen, dado que cuanto más se comporta una cadena de Markov dependiente como una muestra independiente, menor es el error en la aproximación posterior resultante. Para ello se calcula el número efectivo de muestras $(n_{eff})$ para cada cadena.
 
 ```{r tabla nro efectivo de muestra}
 cadenas_text <- c("Cadena 1", "Cadena 2", "Cadena 3")
@@ -471,7 +471,7 @@ nro_ef_muestras |>
   tt() 
 ```
 
-Con esto concluimos que el valor de $\kappa$ que arroja una muestra relacionada que equivale a una independiente de mayor tamaño es 5. Sin embargo esta cantidad de muestras independientes es muy pobre teniendo en cuenta que el tamaño de la cadena es de 5000 muestras.
+Con esto concluimos que el valor de $\kappa$ que arroja una muestra relacionada que equivale a una independiente de mayor tamaño es 5. Sin embargo, esta cantidad de muestras independientes es muy pobre teniendo en cuenta que el tamaño de la cadena es de 5000 muestras.
 
 
 ```{r funcion x}
@@ -589,7 +589,7 @@ Para testear el algoritmo de Metropolis-Hastings bivariado creado, se decide obt
 
 Donde $\mu^* = \begin{bmatrix} 0.4 \\ 0.75 \end{bmatrix}$ y $\Sigma^* = \begin{bmatrix} 1.35 & 0.4 \\ 0.4 & 2.4 \end{bmatrix}$.
 
-Se plantean 3 matrices de covarianzas distintas como propuestas para observar con cual de estas se obtienen muestras mas aproximadas a la verdadera distribución:
+Se plantean 3 matrices de covarianzas distintas como propuestas para observar con cuál de estas se obtienen muestras más aproximadas a la verdadera distribución:
 
 1. $\Sigma_1 = \begin{bmatrix} 1 & 0 \\ 0 & 2 \end{bmatrix}$ Se puede ver su densidad en la @fig-cov1, el recorrido de la cadena en la @fig-trace-cov1 y su autocorrelación en la @fig-autocor1.
 
@@ -887,10 +887,10 @@ neff_tabla_ros |>
   tt()
 ```
 
-Considerando en los tamaños de las muestras efectivas en cada dimensión y en los gráficos de autocorrelación observados, parece que la matriz de covarianzas $\Sigma_2$ genera muestras que ajustan mejor a la distribución objetivo.
+Considerando los tamaños de las muestras efectivas en cada dimensión y los gráficos de autocorrelación observados, parece que la matriz de covarianzas $\Sigma_2$ genera muestras que ajustan mejor a la distribución objetivo.
 
 
-Para ver que tan bien funciona Metropolis-Hastings en esta situación compleja, interesa calcular ciertas probabilidades y compararlas con el método de "Integración Manual".
+Para ver qué tan bien funciona Metropolis-Hastings en esta situación compleja, interesa calcular ciertas probabilidades y compararlas con el método de "Integración Numérica".
 
 ```{r probabilidades p10 1}
 # i
@@ -942,19 +942,13 @@ probabilidades_banana |>
 
 Se puede observar que el algoritmo en esta situación falla bastante en la generación de las muestras, dado que la estimación de las probabilidades son muy diferentes a las calculadas por un método casi exacto.
 
-\newpage
-
 # Conclusión
 
-Metrópolis-Hastings es una herramienta muy útil y sencilla de emplear para generar muestras de distribuciones cuya complejidad se escapa de los métodos de muestreo más populares y directos. A lo largo del estudio se lograron detectar múltiples características tanto positivas como negativas de este método tan utilizado en el campo de la estística bayesiana.
+Metrópolis-Hastings es una herramienta muy útil y sencilla de emplear para generar muestras de distribuciones cuya complejidad se escapa de los métodos de muestreo más populares y directos. A lo largo del estudio se lograron detectar múltiples características tanto positivas como negativas de este método tan utilizado en el campo de la estadística bayesiana.
 
 Este método brinda buenos resultados cuando la distribución a muestrear es unidimensional, o en el caso bidimensional siempre y cuando la distribución tenga una forma "sencilla", como por ejemplo una normal bivariada.
 
 Una limitación que presenta es el costo computacional en casos de alta dimensionalidad, o cuando la forma de la distribución a muestrear es muy atípica o con grandes picos como por ejemplo en el caso de la *banana de Rosenbrock*.
-
-
-
-
 
 # Anexo
 
