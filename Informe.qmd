@@ -59,7 +59,7 @@ knitr::include_graphics("logounr.png")
 \vspace{1cm}
 
 \Large
-**METRÓPOLIS-HASTINGS**
+**METROPOLIS-HASTINGS**
 
 
 \vspace{0.3cm}
@@ -156,7 +156,7 @@ A continuación se presentan las funciones usadas para aplicar el método en los
 
 ::: {.callout-note}
 
-## Algoritmo Metrópolis-Hastings univariado
+## Algoritmo Metropolis-Hastings univariado
 
 ```{r algoritmo mh univariado doc 1, echo = T, eval=FALSE}
 sample_mh <- function(n, d_objetivo, r_propuesta = NULL, 
@@ -240,7 +240,7 @@ Con el propósito de facilitar los cálculos de la técnica, no se especificará
 
 ::: {.callout-note}
 
-## Algoritmo Metrópolis-Hastings bivariado
+## Algoritmo Metropolis-Hastings bivariado
 
 ```{r algoritmo m-h bivariado doc 1, echo = T, eval = F}
 sample_mh_mv <- function(n, d_objetivo, cov_propuesta = diag(2), 
@@ -949,7 +949,7 @@ Se puede observar que el algoritmo en esta situación falla bastante en la gener
 
 # Conclusión
 
-Metrópolis-Hastings es una herramienta muy útil y sencilla de emplear para generar muestras de distribuciones cuya complejidad se escapa de los métodos de muestreo más populares y directos. A lo largo del estudio se lograron detectar múltiples características tanto positivas como negativas de este método tan utilizado en el campo de la estadística bayesiana.
+Metropolis-Hastings es una herramienta muy útil y sencilla de emplear para generar muestras de distribuciones cuya complejidad se escapa de los métodos de muestreo más populares y directos. A lo largo del estudio se lograron detectar múltiples características tanto positivas como negativas de este método tan utilizado en el campo de la estadística bayesiana.
 
 Este método brinda buenos resultados cuando la distribución a muestrear es unidimensional, o en el caso bidimensional siempre y cuando la distribución tenga una forma "sencilla", como por ejemplo una normal bivariada.
 
