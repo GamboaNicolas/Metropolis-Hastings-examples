@@ -109,7 +109,7 @@ El método funciona de la siguiente forma:
 
 - De la distribución $q(x)$ centrada en $\theta_0$ muestrear un nuevo punto ($\theta'$)
 
-- Si la densidad de la función $f(x)$ es mayor en $\theta'$ que en $\theta_0$, entonces $\theta'$ formará parte de la muestra, en caso contrario será parte de la muestra con probabilidad $\frac{f(\theta')}{f(\theta_0)}\frac{q(\theta_0 \ |\theta')}{q(\theta' \ |\theta_0)}$ o con probabilidad $1-\frac{f(\theta')}{f(\theta)}\frac{q(\theta \ |\theta')}{q(\theta' \ |\theta)}$ se repetirá $\theta$ en la muestra.
+- Si la densidad de la función $f(x)$ es mayor en $\theta'$ que en $\theta_0$, entonces $\theta'$ formará parte de la muestra, en caso contrario será parte de la muestra con probabilidad $\frac{f(\theta')}{f(\theta_0)}\frac{q(\theta_0 \ |\theta')}{q(\theta' \ |\theta_0)}$ o con probabilidad \newline $1-\frac{f(\theta')}{f(\theta_0)}\frac{q(\theta_0 \ |\theta')}{q(\theta' \ |\theta_0)}$ se repetirá $\theta$ en la muestra.
 
 - Repetir el proceso, obteniendo nuevos puntos propuestos a partir de $q(x)$ centrada en el último valor muestreado.
 
@@ -236,6 +236,9 @@ sample_mh <- function(n, d_objetivo, r_propuesta = NULL,
 
 \newpage
 
+Con el propósito de facilitar los cálculos de la técnica, no se especificará en los argumentos la forma de la distribución propuesta, en cambio, $q(\vec x)$ será Normal, cuya matriz de covarianzas $\Sigma$ y valor inicial $\vec \theta_0$ serán los únicos argumentos en relación a la distribución propuesta que se brindarán en la función para la obtención de muestras por Metropolis-Hastings para distribuciones bivariadas. 
+
+
 ::: {.callout-note}
 
 ## Algoritmo Metrópolis-Hastings bivariado
@@ -330,7 +333,7 @@ sample_mh_mv <- function(n, d_objetivo, cov_propuesta = diag(2),
 
 ### Distribución de Kumaraswamy
 
-La distribución de Kumaraswamy es una distribución de probabilidad continua que se utiliza para modelar variables aleatorias con soporte en el intervalo $(0,1)$, cuya función de densidad es: \newline $f(x|a,b) = abx^{a-1}(1-x^a)^{b-1}, \ con \ a,b>0$
+La distribución de _Kumaraswamy_ es una distribución de probabilidad continua que se utiliza para modelar variables aleatorias con soporte en el intervalo $(0,1)$, cuya función de densidad es: \newline $f(x|a,b) = abx^{a-1}(1-x^a)^{b-1}, \ con \ a,b>0$
 
 
 
@@ -372,13 +375,14 @@ tibble(
 
 Esta distribución puede ser utilizada en el ámbito de la estadística bayesiana a la hora de definir un prior para un parámetro con campo de variación en el intervalo (0, 1).
 
-Por lo general, la distribución elegida para estas situaciones suele ser la beta ya que presenta ventajas como ser una distribución conjugada de la binomial, lo cual puede facilitar mucho algunos cálculos. El problema es que la densidad de esta depende de la función gamma, la cual es una integral, y en algunas situaciones se puede complicar su cálculo.
+Por lo general la distribución elegida para estas situaciones suele ser la $Beta$[^ $p(x| \ a,b) = \frac{x^{a-1}(1-x)^{b-1}}{B(a,b)}$ con $B(a,b) = \frac{\Gamma(a)\Gamma(b)}{\Gamma(a+b)}$] ya que presenta ventajas como ser una distribución conjugada de la binomial, lo cual puede facilitar mucho algunos cálculos. El problema es que la densidad de esta depende de la función _gamma_[^ $\Gamma(x)=\int^\infty_0 u^{x-1}e^{-u}du$], la cual es una integral, y en algunas situaciones se puede complicar su cálculo.
 
 La distribución de Kumaraswamy se comporta de manera muy similar a la beta, sin tener el problema de la dificultad del cálculo de la integral. 
 
+
 \newpage
 
-A continuación, utilizaremos el algoritmo de Metropolis-Hastings para generar 5000 muestras de la distribución de _Kumaraswamy_ con parámetros $a = 6$ y $b = 2$, utilizando como distribución propuesta una $Beta(\mu, \kappa)$, donde $\mu$ representa la media de la distribución y $\kappa$ el grado de la concentración de la distribución. Esto lo haremos para 3 valores distintos de $\kappa$.
+Para probar la calidad de las muestras obtenidas por Metropolis-Hastings, se generan 5000 muestras de la distribución de _Kumaraswamy_ con parámetros $a = 6$ y $b = 2$, utilizando como distribución propuesta una $Beta(\mu, \kappa)$, donde $\mu$ representa la media de la distribución y $\kappa$ el grado de la concentración de la distribución. Se realiza este procedimiento para 3 valores distintos de $\kappa$.
 
 ```{r comparacion de las cadenas}
 get_beta_param <- function(media, kappa) {
@@ -449,7 +453,7 @@ graficos$Kappa2
 graficos$Kappa5
 ```
 
-Teniendo en cuenta que estas muestras son dependientes, resulta de interés conocer a cuantas muestras independientes equivalen, dado que cuanto más se comporta una cadena de Markov dependiente como una muestra independiente, menor es el error en la aproximación posterior resultante. Para ello se calcula el número efectivo de muestras $(n_{eff})$ para cada cadena.
+Sin embargo, debido a que los valores propuestos ($\theta'$) en las iteraciones del método son obtenidos a partir de una distribución centrada en el valor anterior muestreado ($\theta_0$), las muestras están correlacionadas. Resulta de interés entonces conocer a cuantas muestras independientes equivalen, dado que cuanto más se comporta una cadena de Markov dependiente como una muestra independiente, menor será el error en la aproximación del posterior resultante. Con este objetivo se calcula el número efectivo de muestras $(n_{eff})$ para cada cadena.
 
 ```{r tabla nro efectivo de muestra}
 cadenas_text <- c("Cadena 1", "Cadena 2", "Cadena 3")
@@ -471,7 +475,7 @@ nro_ef_muestras |>
   tt() 
 ```
 
-Con esto concluimos que el valor de $\kappa$ que arroja una muestra relacionada que equivale a una independiente de mayor tamaño es 5. Sin embargo, esta cantidad de muestras independientes es muy pobre teniendo en cuenta que el tamaño de la cadena es de 5000 muestras.
+Se concluye que el valor de $\kappa$ que arroja una muestra relacionada que equivale a una independiente de mayor tamaño es 5. Sin embargo, esta cantidad de muestras independientes es muy pobre teniendo en cuenta que el tamaño de la cadena es de 5000 muestras.
 
 
 ```{r funcion x}
@@ -583,13 +587,13 @@ Si bien las diferencias en dispersión de las muestras no son muy perceptibles a
 
 ### Normal Bivariada
 
-El algoritmo de Metropolis-Hastings se aprecia más cuando se obtienen muestras de distribuciones en más de una dimensión, incluso cuando no se conoce la constante de normalización, sin embargo tiene limitaciones para cierta funciones, las cuales se verán a continuación.
+El algoritmo de Metropolis-Hastings es más apreciable cuando se necesita obtener muestras de distribuciones de más de una dimensión.
 
-Para testear el algoritmo de Metropolis-Hastings bivariado creado, se decide obtener muestras de una distribución Normal bivariada con vector de media $\mu^*$ y matriz de covarianza $\Sigma^*$ con el algoritmo ya mencionado.
+Para testear el algoritmo de Metropolis-Hastings bivariado creado se decide obtener muestras de una distribución Normal bivariada con vector de media $\mu^*$ y matriz de covarianza $\Sigma^*$.
 
 Donde $\mu^* = \begin{bmatrix} 0.4 \\ 0.75 \end{bmatrix}$ y $\Sigma^* = \begin{bmatrix} 1.35 & 0.4 \\ 0.4 & 2.4 \end{bmatrix}$.
 
-Se plantean 3 matrices de covarianzas distintas como propuestas para observar con cuál de estas se obtienen muestras más aproximadas a la verdadera distribución:
+Se proponen 3 matrices de covarianzas distintas para observar con cuál de estas se obtienen muestras más aproximadas a la verdadera distribución:
 
 1. $\Sigma_1 = \begin{bmatrix} 1 & 0 \\ 0 & 2 \end{bmatrix}$ Se puede ver su densidad en la @fig-cov1, el recorrido de la cadena en la @fig-trace-cov1 y su autocorrelación en la @fig-autocor1.
 
@@ -698,7 +702,7 @@ neff_tabla <- tibble(
 ```
 
 ```{r tabla numero efectivo de muestras normal bivariada 2}
-#| tbl-cap: "Número efectivo de muestras para cadenas de 5000 muestras y distintos valores de $\\Sigma$"
+#| tbl-cap: "Número efectivo de muestras para cadenas de 5000 muestras y distintos $\\Sigma$"
 #| tbl-pos: H
 
 neff_tabla |> 
@@ -759,7 +763,7 @@ probabilidades_nb |>
   tt() 
 ```
 
-Podemos concluir que las estimaciones de las probabilidades calculadas son bastante acertadas, debido a su similitud con los otros métodos.
+Se puede concluir que las estimaciones de las probabilidades calculadas son bastante acertadas, debido a su similitud con los otros métodos.
 
 \newpage
 
@@ -890,7 +894,8 @@ neff_tabla_ros |>
 Considerando los tamaños de las muestras efectivas en cada dimensión y los gráficos de autocorrelación observados, parece que la matriz de covarianzas $\Sigma_2$ genera muestras que ajustan mejor a la distribución objetivo.
 
 
-Para ver qué tan bien funciona Metropolis-Hastings en esta situación compleja, interesa calcular ciertas probabilidades y compararlas con el método de "Integración Numérica".
+Para ver qué tan bien funciona Metropolis-Hastings en esta situación compleja, interesa calcular ciertas probabilidades y compararlas con las obtenidas aplicando el metodo de "Integración Numérica".
+
 
 ```{r probabilidades p10 1}
 # i
@@ -948,7 +953,7 @@ Metrópolis-Hastings es una herramienta muy útil y sencilla de emplear para gen
 
 Este método brinda buenos resultados cuando la distribución a muestrear es unidimensional, o en el caso bidimensional siempre y cuando la distribución tenga una forma "sencilla", como por ejemplo una normal bivariada.
 
-Una limitación que presenta es el costo computacional en casos de alta dimensionalidad, o cuando la forma de la distribución a muestrear es muy atípica o con grandes picos como por ejemplo en el caso de la *banana de Rosenbrock*.
+Una limitación que presenta es el costo computacional en casos de alta dimensionalidad, o cuando la forma de la distribución a muestrear es muy atípica como por ejemplo en el caso de la *banana de Rosenbrock*.
 
 # Anexo
 
