@@ -176,7 +176,6 @@ sample_mh <- function(n, d_objetivo, r_propuesta = NULL,
     r_propuesta <- function(media) rnorm(n = 1, media, sd = 1)
     d_propuesta <- function(x, media) dnorm(x = x,media, sd = 1)
   }
-  
 ```
 
 :::
@@ -186,7 +185,6 @@ sample_mh <- function(n, d_objetivo, r_propuesta = NULL,
 :::{.callout-note}
 ##       
 ```{r algoritmo mh univariado doc 2, echo = T, eval=FALSE}
-
   # Se definen valores iniciales
   stopifnot(n > 0)
   contador <- 0
@@ -208,7 +206,6 @@ sample_mh <- function(n, d_objetivo, r_propuesta = NULL,
 
     # Si la densidad del valor actual para la distribución obj es 0,
     # se elige el nuevo valor propuesto con probabilidad 1
-    
     if (f_actual == 0 || q_nuevo == 0) {
       alfa <- 1
     } else {
@@ -232,7 +229,6 @@ sample_mh <- function(n, d_objetivo, r_propuesta = NULL,
   return(list(cadena = data.frame(iteracion = 1:n, x = muestras), 
        tasa_aceptacion = contador / n))
 }
-
 ```
 
 :::
