@@ -103,12 +103,12 @@ sample_mh_mv <- function(n, d_objetivo, cov_propuesta = diag(2), p_inicial = num
     }
     
     # Se elige el nuevo valor de la muestra con una probabilidad alfa
-    aceptar <- rbinom(1,1,alfa)
-    if (aceptar) {
-      muestras[i,] <- p_propuesta
-    }else{
-      muestras[i,] <- p_actual
-    }
+    
+    muestras[i,] <- sample(
+      c(p_propuesta, p_actual),
+      size = 1, 
+      prob = c(alfa, 1-alfa)
+    )
     
     # Se actualiza el número de saltos aceptados
     if(!any(muestras[i,] != muestras[i-1,])) {
